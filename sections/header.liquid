@@ -314,6 +314,7 @@
 <header-component
   id="header-component"
   class="{{ class }}"
+  data-menu-row="{{ section.settings.menu_row }}"
   data-theme-color="rgb({{ section.settings.color_scheme_top.settings.background.rgb }})"
   {% if transparent %}
     transparent="{{ transparent }}"
@@ -460,6 +461,14 @@
   @media screen and (min-width: 750px) {
     #header-component[data-menu-style='menu'] :is(.header-menu, .dropdown-localization) {
       display: flex;
+    }
+
+    #header-component[data-menu-row='bottom'] .header__row--bottom .header-menu {
+      display: flex;
+    }
+
+    #header-component[data-menu-row='bottom'] .header__row--top .header__drawer {
+      display: none;
     }
   }
 
