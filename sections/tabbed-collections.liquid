@@ -1,0 +1,478 @@
+{% liquid
+  assign columns = section.settings.columns | default: 5
+
+  comment
+    When fetched via Section Rendering API from a collection page, use that collection.
+    Otherwise fall back to the first tab block's collection for SSR on the homepage.
+  endcomment
+  if collection != blank
+    assign active_collection = collection
+  elsif section.blocks.size > 0
+    assign active_collection = collections[section.blocks[0].settings.collection]
+  endif
+
+  comment
+    Mock fallback: if active_collection has no products, use collections.all so real
+    product images show in the editor / before any collection is assigned.
+  endcomment
+  if active_collection == blank or active_collection.products_count == 0
+    assign active_collection = collections.all
+  endif
+%}
+
+<div class="section-background color-{{ section.settings.color_scheme }}"></div>
+<div
+  class="section section--{{ section.settings.section_width }} color-{{ section.settings.color_scheme }} spacing-style"
+  style="{% render 'spacing-style', settings: section.settings %}"
+>
+  <div
+    class="tabbed-collections"
+    data-tabbed-collections="{{ section.id }}"
+  >
+    {%- if section.settings.heading != blank -%}
+      <h3 class="tabbed-collections__heading">{{ section.settings.heading | escape }}</h3>
+    {%- endif -%}
+
+  {%- if section.blocks.size > 0 -%}
+    <div class="tabbed-collections__tabs" role="tablist">
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'tab' -%}
+          <button
+            class="tabbed-collections__tab{% if forloop.first %} is-active{% endif %}"
+            role="tab"
+            aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+            data-tab-id="{{ block.id }}"
+            data-collection="{{ block.settings.collection }}"
+            data-tab-link="{{ block.settings.link | default: block.settings.collection | prepend: '/collections/' }}"
+            {{ block.shopify_attributes }}
+          >
+            {{- block.settings.label | escape -}}
+          </button>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  {%- else -%}
+    <div class="tabbed-collections__tabs" role="tablist" data-placeholder-tabs>
+      <button
+        class="tabbed-collections__tab is-active"
+        role="tab"
+        aria-selected="true"
+        data-tab-id="placeholder-1"
+        data-collection=""
+      >
+        {{- 'Tab 1' | escape -}}
+      </button>
+      <button
+        class="tabbed-collections__tab"
+        role="tab"
+        aria-selected="false"
+        data-tab-id="placeholder-2"
+        data-collection=""
+      >
+        {{- 'Tab 2' | escape -}}
+      </button>
+      <button
+        class="tabbed-collections__tab"
+        role="tab"
+        aria-selected="false"
+        data-tab-id="placeholder-3"
+        data-collection=""
+      >
+        {{- 'Tab 3' | escape -}}
+      </button>
+    </div>
+  {%- endif -%}
+
+  <div class="tabbed-collections__grid" style="--tc-columns: {{ columns }};" data-grid>
+    {%- if active_collection != blank and active_collection.products_count > 0 -%}
+      {%- for product in active_collection.products limit: 10 -%}
+        {%- assign product_price = product.price -%}
+        {%- assign compare_price = product.compare_at_price -%}
+        <a
+          href="{{ product.url }}"
+          class="product-card"
+          aria-label="{{ product.title | escape }}"
+        >
+          <div class="product-card__media">
+            {%- if product.featured_image != blank -%}
+              {{
+                product.featured_image
+                | image_url: width: 600
+                | image_tag:
+                  loading: 'lazy',
+                  widths: '300, 400, 500, 600',
+                  sizes: '(min-width: 990px) 20vw, (min-width: 750px) 25vw, 50vw',
+                  class: 'product-card__image',
+                  alt: product.featured_image.alt | default: product.title
+              }}
+            {%- else -%}
+              {{ 'product-1' | placeholder_svg_tag: 'product-card__placeholder-image' }}
+            {%- endif -%}
+          </div>
+
+          <div class="product-card__info">
+            <p class="product-card__title">{{ product.title | truncate: 60 }}</p>
+            <p class="product-card__price">
+              {%- if compare_price > product_price -%}
+                <s class="product-card__compare">{{ compare_price | money }}</s>
+                <span class="product-card__sale">{{ product_price | money }}</span>
+              {%- else -%}
+                <span>{{ product_price | money }}</span>
+              {%- endif -%}
+            </p>
+          </div>
+        </a>
+      {%- endfor -%}
+    {%- else -%}
+      {%- for i in (1..10) -%}
+        <div class="product-card" data-placeholder="true">
+          <div class="product-card__media">
+            {{ 'product-1' | placeholder_svg_tag: 'product-card__placeholder-image' }}
+          </div>
+          <div class="product-card__info">
+            <p class="product-card__title">{{ 'products.product_card_placeholder' | t }}</p>
+            <p class="product-card__price">{{ 1999 | money }}</p>
+          </div>
+        </div>
+      {%- endfor -%}
+    {%- endif -%}
+  </div>
+
+  {%- if section.settings.button_label != blank -%}
+    <div class="tabbed-collections__footer">
+      {%- assign first_tab = section.blocks | first -%}
+      <a
+        href="{{ section.settings.button_link | default: first_tab.settings.link | default: first_tab.settings.collection | prepend: '/collections/' | default: '#' }}"
+        class="button tabbed-collections__explore-btn"
+        data-explore-btn
+      >
+        {{- section.settings.button_label | escape -}}
+      </a>
+    </div>
+  {%- endif -%}
+
+  </div>{%- comment -%}end .tabbed-collections{%- endcomment -%}
+</div>
+
+{% stylesheet %}
+  .tabbed-collections {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .tabbed-collections__heading {
+    margin: 0;
+    text-align: center;
+  }
+
+  .tabbed-collections__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .tabbed-collections__tab {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 20px;
+    border: 1.5px solid currentColor;
+    border-radius: 100px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.4;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .tabbed-collections__tab.is-active,
+  .tabbed-collections__tab:hover {
+    background-color: var(--color-foreground);
+    color: var(--color-background);
+  }
+
+  .tabbed-collections__tab[aria-busy='true'] {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .tabbed-collections__grid {
+    display: grid;
+    grid-template-columns: repeat(var(--tc-columns, 5), 1fr);
+    gap: 24px 8px;
+    width: 100%;
+  }
+
+  @media screen and (max-width: 749px) {
+    .tabbed-collections__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .tabbed-collections__grid .product-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-decoration: none;
+    color: inherit;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .tabbed-collections__grid .product-card__media {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border-radius: 0;
+    background-color: var(--color-background-contrast, #f5f5f5);
+  }
+
+  .tabbed-collections__grid .product-card__image,
+  .tabbed-collections__grid .product-card__placeholder-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .tabbed-collections__grid .product-card__info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .tabbed-collections__grid .product-card__title {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: var(--color-foreground);
+  }
+
+  .tabbed-collections__grid .product-card__price {
+    margin: 0;
+    color: var(--color-foreground);
+  }
+
+  .tabbed-collections__grid .product-card__compare {
+    opacity: 0.6;
+    margin-right: 4px;
+  }
+
+  .tabbed-collections__grid .product-card__sale {
+    color: var(--color-sale, #c0392b);
+  }
+
+  .tabbed-collections__footer {
+    margin-top: 8px;
+  }
+
+  .tabbed-collections__explore-btn {
+    padding-block: 8px;
+    padding-inline: 20px;
+    font-size: 0.875rem;
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  (function () {
+    document.querySelectorAll('[data-tabbed-collections]').forEach(function (section) {  // section = .tabbed-collections inner div
+      var tabs = section.querySelectorAll('.tabbed-collections__tab');
+      var grid = section.querySelector('[data-grid]');
+      var exploreBtn = section.querySelector('[data-explore-btn]');
+      var cache = {};
+
+      function setActiveTab(activeTab) {
+        tabs.forEach(function (t) {
+          t.classList.toggle('is-active', t === activeTab);
+          t.setAttribute('aria-selected', t === activeTab ? 'true' : 'false');
+        });
+        if (exploreBtn && activeTab.dataset.tabLink) {
+          exploreBtn.href = activeTab.dataset.tabLink;
+        }
+      }
+
+      function loadTab(tab) {
+        var handle = tab.dataset.collection;
+        if (!handle) return;
+
+        if (cache[handle]) {
+          grid.innerHTML = cache[handle];
+          setActiveTab(tab);
+          return;
+        }
+
+        tab.setAttribute('aria-busy', 'true');
+        fetch('/collections/' + handle + '?sections=tabbed-collections')
+          .then(function (r) { return r.json(); })
+          .then(function (json) {
+            var html = json['tabbed-collections'];
+            if (!html) return;
+            var doc = new DOMParser().parseFromString(html, 'text/html');
+            var newGrid = doc.querySelector('[data-grid]');
+            if (newGrid) {
+              cache[handle] = newGrid.innerHTML;
+              grid.innerHTML = cache[handle];
+            }
+            setActiveTab(tab);
+          })
+          .catch(function () { setActiveTab(tab); })
+          .finally(function () { tab.removeAttribute('aria-busy'); });
+      }
+
+      if (tabs[0]) {
+        var firstHandle = tabs[0].dataset.collection;
+        if (firstHandle) cache[firstHandle] = grid.innerHTML;
+        setActiveTab(tabs[0]);
+      }
+
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          if (tab.classList.contains('is-active')) return;
+          if (!tab.dataset.collection) return;
+          loadTab(tab);
+        });
+      });
+    });
+  })();
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "t:names.tabbed_collections",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "blocks": [
+    {
+      "type": "tab",
+      "name": "t:names.tab",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "t:settings.label",
+          "default": "Tab"
+        },
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "t:settings.collection"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "t:settings.link"
+        }
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:settings.heading",
+      "default": "Browse More Curated Choices"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "t:settings.columns",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 5
+    },
+    {
+      "type": "header",
+      "content": "t:content.buttons"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "t:settings.label",
+      "default": "Explore All"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "t:settings.link"
+    },
+    {
+      "type": "header",
+      "content": "t:content.appearance"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:settings.section_width",
+      "options": [
+        { "value": "page-width", "label": "t:options.page" },
+        { "value": "full-width", "label": "t:options.full" }
+      ],
+      "default": "page-width"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.tabbed_collections",
+      "category": "t:categories.collections",
+      "blocks": [
+        {
+          "type": "tab",
+          "settings": {
+            "label": "For Mom/Grandma"
+          }
+        },
+        {
+          "type": "tab",
+          "settings": {
+            "label": "For Wife"
+          }
+        },
+        {
+          "type": "tab",
+          "settings": {
+            "label": "For Him"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

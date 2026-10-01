@@ -1,0 +1,1539 @@
+
+<div
+  class="
+    contact-form
+    spacing-style size-style
+    {% if block.settings.inherit_color_scheme == false %}color-{{ block.settings.color_scheme }}{% endif %}
+  "
+  style="
+    {% render 'spacing-style', settings: block.settings %}
+    {% render 'size-style', settings: block.settings %}
+  "
+  {{ block.shopify_attributes }}
+>
+  <div class="contact-form-advanced">
+  {%- form 'contact', id: 'ContactForm', class: 'contact-form-advanced__form', novalidate: 'novalidate' -%}
+    {%- if form.posted_successfully? -%}
+      <div class="contact-form-advanced__status contact-form-advanced__status--success">
+        <span class="contact-form-advanced__status-icon" aria-hidden="true">&#10003;</span>
+        <span>Thank you! Your message has been sent successfully.</span>
+      </div>
+    {%- endif -%}
+
+    <div class="field-grid-2">
+      <div class="field" data-field="name">
+        <label class="field__label" for="ContactForm-name">Name</label>
+        <input
+          id="ContactForm-name"
+          class="input"
+          type="text"
+          autocomplete="name"
+          name="contact[name]"
+          value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}"
+          placeholder="Your full name"
+        >
+        <p class="field__help">Add your name so we can address you properly.</p>
+        <p class="field__error" data-error></p>
+      </div>
+
+      <div class="field" data-field="email">
+        <label class="field__label" for="ContactForm-email">
+          Email
+          <span class="required">*</span>
+        </label>
+        <input
+          id="ContactForm-email"
+          class="input"
+          type="email"
+          autocomplete="email"
+          name="contact[email]"
+          value="{{ form.email | default: customer.email }}"
+          placeholder="you@example.com"
+          required
+        >
+        <p class="field__help">Use a valid email so we can reply quickly.</p>
+        <p class="field__error" data-error></p>
+      </div>
+    </div>
+
+    <div class="field" data-field="type">
+      <label class="field__label">Type of request<span class="required">*</span></label>
+      {% assign type_init = form['Type of request'] | escape %}
+      <div class="custom-select" data-name="contact[Type of request]">
+        <button type="button" class="custom-select__trigger" data-trigger>
+          <span class="custom-select__text">
+            {% if type_init != blank -%}
+              {{- type_init -}}
+            {%- else %}
+              <span class="custom-select__placeholder">Select a type</span>
+            {% endif %}
+          </span>
+          <span class="custom-select__caret" aria-hidden="true"></span>
+        </button>
+
+        <div class="custom-select__dropdown" aria-hidden="true">
+          <button type="button" class="custom-select__option" data-value="Inquiry">Inquiry</button>
+          <button type="button" class="custom-select__option" data-value="Request">Request</button>
+          <button type="button" class="custom-select__option" data-value="Complaint">Complaint</button>
+          <button type="button" class="custom-select__option" data-value="Review/Feedback">Review / Feedback</button>
+          <button type="button" class="custom-select__option" data-value="Report A Site Issue">
+            Report A Site Issue
+          </button>
+          <button type="button" class="custom-select__option" data-value="Copyright Infringement/DMCA Report">
+            Copyright Infringement/DMCA Report
+          </button>
+        </div>
+
+        <input
+          type="hidden"
+          id="ContactForm-type"
+          name="contact[Type of request]"
+          value="{{ type_init }}"
+          data-hidden-input
+          required
+        >
+      </div>
+
+      <p class="field__help">Choose what this message is about.</p>
+      <p class="field__error" data-error></p>
+    </div>
+
+    <div class="contact-flow contact-flow--default" data-flow="default">
+      {% assign detail_init = form['Request detail'] | escape %}
+
+      <div class="field" data-field="subtype">
+        <label class="field__label">How may we help you?<span class="required">*</span></label>
+        <div class="custom-select" data-name="contact[Request detail]" data-subtype>
+          <button type="button" class="custom-select__trigger" data-trigger>
+            <span class="custom-select__text">
+              {% if detail_init != blank -%}
+                {{- detail_init -}}
+              {%- else %}
+                <span class="custom-select__placeholder">Select an option</span>
+              {% endif %}
+            </span>
+            <span class="custom-select__caret" aria-hidden="true"></span>
+          </button>
+          <div class="custom-select__dropdown" aria-hidden="true" data-options></div>
+
+          <input
+            type="hidden"
+            id="ContactForm-subtype"
+            name="contact[Request detail]"
+            value="{{ detail_init }}"
+            data-hidden-input
+            required
+          >
+        </div>
+        <p class="field__error" data-error></p>
+      </div>
+
+      <div class="field" data-field="order">
+        <label class="field__label" for="ContactForm-order-number">Order number (optional)</label>
+        <input
+          id="ContactForm-order-number"
+          class="input"
+          type="text"
+          name="contact[Order number]"
+          placeholder="e.g. #CRF1001"
+          value="{{ form['Order number'] | escape }}"
+        >
+        <p class="field__help">Please include your order number for faster support. Examples: <strong>#CRF1001</strong>, <strong>#CRF1002</strong>, <strong>#CRF1003</strong></p>
+        <p class="field__error" data-error></p>
+      </div>
+
+      <div class="field" data-field="message">
+        <label class="field__label" for="ContactForm-body">Message<span class="required">*</span></label>
+        <textarea
+          id="ContactForm-body"
+          class="textarea"
+          name="contact[body]"
+          rows="6"
+          placeholder="Tell us the details so we can help you quickly"
+        >{{ form.body }}</textarea>
+        <p class="field__help">Include as much detail as possible.</p>
+        <p class="field__error" data-error></p>
+      </div>
+    </div>
+
+    <div class="contact-flow contact-flow--dmca" data-flow="dmca" hidden>
+      <div class="field" data-field="dmca_description">
+        <label class="field__label">Description<span class="required">*</span></label>
+        <textarea id="Dmca-description" class="textarea" name="contact[DMCA Description]" rows="4"></textarea>
+        <p class="field__error" data-error></p>
+      </div>
+
+      <div class="field" data-field="dmca_company">
+        <label class="field__label">Company</label>
+        <input id="Dmca-company" class="input" type="text" name="contact[DMCA Company]">
+        <p class="field__error" data-error></p>
+      </div>
+
+      <div class="field" data-field="dmca_address">
+        <label class="field__label">Address</label>
+        <input id="Dmca-address" class="input" type="text" name="contact[DMCA Address]">
+        <p class="field__error" data-error></p>
+      </div>
+
+      <div class="field" data-field="dmca_phone">
+        <label class="field__label">Phone Number</label>
+        <input id="Dmca-phone" class="input" type="tel" name="contact[DMCA Phone]">
+        <p class="field__error" data-error></p>
+      </div>
+
+      <div class="field" data-field="dmca_url">
+        <label class="field__label">URL Content you want to report<span class="required">*</span></label>
+        <input id="Dmca-url" class="input" type="url" name="contact[DMCA URL]">
+        <p class="field__error" data-error></p>
+      </div>
+
+      <div class="field" data-field="dmca_infringing">
+        <label class="field__label">Description of the infringing Content<span class="required">*</span></label>
+        <textarea id="Dmca-infringing" class="textarea" name="contact[DMCA Infringing Description]" rows="4"></textarea>
+        <p class="field__error" data-error></p>
+      </div>
+
+      {% assign dmca_role_init = form['DMCA Role'] | escape %}
+      <div class="field" data-field="dmca_role">
+        <label class="field__label">Are you the Copyright Owner or an Agent?<span class="required">*</span></label>
+
+        <div class="dmca-role-options" data-dmca-role>
+          <button type="button" class="dmca-role-option" data-value="Copyright owner">Copyright owner</button>
+          <button type="button" class="dmca-role-option" data-value="Agent">Agent</button>
+          <button type="button" class="dmca-role-option" data-value="Others">Others</button>
+          <input type="hidden" id="Dmca-role" name="contact[DMCA Role]" value="{{ dmca_role_init }}">
+        </div>
+
+        <p class="field__error" data-error></p>
+      </div>
+
+      <div class="field" data-field="dmca_copyrighted">
+        <label class="field__label">Copyrighted content</label>
+        <input id="Dmca-copyrighted" class="input" type="text" name="contact[DMCA Copyrighted Content]">
+        <p class="field__error" data-error></p>
+      </div>
+
+      <div class="field" data-field="dmca_original">
+        <label class="field__label">Description of original content Artwork</label>
+        <textarea id="Dmca-original" class="textarea" name="contact[DMCA Original Description]" rows="3"></textarea>
+        <p class="field__error" data-error></p>
+      </div>
+
+      <div class="field" data-field="dmca_evidence">
+        <label class="field__label">Evidence of Ownership</label>
+        <textarea id="Dmca-evidence" class="textarea" name="contact[DMCA Evidence]" rows="3"></textarea>
+        <p class="field__error" data-error></p>
+      </div>
+
+      <div class="field" data-field="dmca_checkbox1">
+        <label class="field__label">
+          <input
+            id="Dmca-checkbox-1"
+            type="checkbox"
+            name="DMCA_check_1"
+            value="true"
+          >
+          I confirm that I have a good-faith belief that the use of the material in the manner complained of is not
+          authorized by law, principles of fair use, the copyright owner or the copyright owner's agent.
+        </label>
+        <input
+          type="hidden"
+          id="DMCA-st-1-hidden"
+          name="contact[DMCA Statement 1]"
+          value=""
+        >
+        <p class="field__error" data-error></p>
+      </div>
+
+      <div class="field" data-field="dmca_checkbox2">
+        <label class="field__label">
+          <input
+            id="Dmca-checkbox-2"
+            type="checkbox"
+            name="DMCA_check_2"
+            value="true"
+          >
+          I swear, under penalty of perjury, that the information in this infringement notice is accurate, and that I am
+          the copyright owner or am authorized to act on behalf of the owner of an exclusive right that is allegedly
+          infringed.
+        </label>
+        <input
+          type="hidden"
+          id="DMCA-st-2-hidden"
+          name="contact[DMCA Statement 2]"
+          value=""
+        >
+        <p class="field__error" data-error></p>
+      </div>
+
+      <div class="field" data-field="dmca_signature">
+        <label class="field__label" for="Dmca-signature">
+          Sign this form electronically by typing your full name in this text box<span class="required">*</span>
+        </label>
+        <input id="Dmca-signature" class="input" type="text" name="contact[DMCA Signature]">
+        <p class="field__error" data-error></p>
+      </div>
+    </div>
+
+    <div class="contact-flow contact-flow--siteissue" data-flow="siteissue" hidden>
+      <div class="field" data-field="product_link">
+        <label class="field__label"
+          >Kindly provide the product link with issues for us to check <span class="required">*</span></label
+        >
+        <input
+          id="ContactForm-product-link"
+          class="input"
+          type="url"
+          name="contact[Product link]"
+          placeholder="https://cherify.com/products/..."
+          value="{{ form['Product link'] | escape }}"
+        >
+        <p class="field__error" data-error></p>
+      </div>
+
+      <div class="field" data-field="site_problem">
+        <label class="field__label">What problem did you have? <span class="required">*</span></label>
+
+        <div class="custom-select" data-name="contact[Site problem]">
+          <button type="button" class="custom-select__trigger" data-trigger>
+            <span class="custom-select__text">
+              <span class="custom-select__placeholder">Choose...</span>
+            </span>
+            <span class="custom-select__caret" aria-hidden="true"></span>
+          </button>
+
+          <div class="custom-select__dropdown" aria-hidden="true">
+            <button type="button" class="custom-select__option" data-value="Unable to proceed with order">
+              Unable to proceed with order
+            </button>
+            <button type="button" class="custom-select__option" data-value="Link is broken/Not Working">
+              Link is broken/Not Working
+            </button>
+            <button type="button" class="custom-select__option" data-value="Photo upload or processing problem">
+              Photo upload or processing problem
+            </button>
+            <button type="button" class="custom-select__option" data-value="I do not see the customization form">
+              I do not see the customization form
+            </button>
+            <button
+              type="button"
+              class="custom-select__option"
+              data-value="The app stopped working or shows a white/blank screen"
+            >
+              The app stopped working or shows a white/blank screen
+            </button>
+            <button
+              type="button"
+              class="custom-select__option"
+              data-value="I cannot enter information to customize the product"
+            >
+              I cannot enter information to customize the product
+            </button>
+            <button
+              type="button"
+              class="custom-select__option"
+              data-value="I cannot see the preview of my customized product"
+            >
+              I cannot see the preview of my customized product
+            </button>
+            <button
+              type="button"
+              class="custom-select__option"
+              data-value="I cannot add the product to my shopping cart"
+            >
+              I cannot add the product to my shopping cart
+            </button>
+            <button
+              type="button"
+              class="custom-select__option"
+              data-value="I received an error message (please describe below)"
+            >
+              I received an error message (please describe below)
+            </button>
+            <button type="button" class="custom-select__option" data-value="Other problem (please describe below)">
+              Other problem (please describe below)
+            </button>
+          </div>
+
+          <input
+            type="hidden"
+            id="ContactForm-site-problem"
+            name="contact[Site problem]"
+            value=""
+            data-hidden-input
+            required
+          >
+        </div>
+
+        <p class="field__error" data-error></p>
+      </div>
+
+      <div class="field" data-field="click_source">
+        <label class="field__label">Where do you click to the URL from? <span class="required">*</span></label>
+
+        <div class="custom-select" data-name="contact[Click source]">
+          <button type="button" class="custom-select__trigger" data-trigger>
+            <span class="custom-select__text"><span class="custom-select__placeholder">Choose...</span></span>
+            <span class="custom-select__caret" aria-hidden="true"></span>
+          </button>
+
+          <div class="custom-select__dropdown" aria-hidden="true">
+            <button type="button" class="custom-select__option" data-value="Facebook app">Facebook app</button>
+            <button type="button" class="custom-select__option" data-value="Facebook web">Facebook web</button>
+            <button type="button" class="custom-select__option" data-value="Instagram app">Instagram app</button>
+            <button type="button" class="custom-select__option" data-value="Google search">Google search</button>
+            <button type="button" class="custom-select__option" data-value="Pinterest">Pinterest</button>
+            <button type="button" class="custom-select__option" data-value="X (Twitter)">X (Twitter)</button>
+            <button type="button" class="custom-select__option" data-value="Direct in browser">
+              Direct in browser
+            </button>
+            <button type="button" class="custom-select__option" data-value="Tiktok app">Tiktok app</button>
+            <button type="button" class="custom-select__option" data-value="Tiktok web">Tiktok web</button>
+            <button type="button" class="custom-select__option" data-value="Other">Other</button>
+          </div>
+
+          <input
+            type="hidden"
+            id="ContactForm-click-source"
+            name="contact[Click source]"
+            value=""
+            data-hidden-input
+            required
+          >
+        </div>
+
+        <p class="field__error" data-error></p>
+      </div>
+
+      <div class="field" data-field="device">
+        <label class="field__label">What device are you using? <span class="required">*</span></label>
+        <input
+          id="ContactForm-device"
+          class="input"
+          type="text"
+          name="contact[Device]"
+          placeholder="e.g. iPhone 14, MacBook Pro, Samsung S22"
+          value="{{ form['Device'] | escape }}"
+        >
+        <p class="field__error" data-error></p>
+      </div>
+
+      <div class="field" data-field="site_description">
+        <label class="field__label">Can you describe in detail what happened? <span class="required">*</span></label>
+        <!-- keep simple textarea but styled; toolbar omitted for simplicity -->
+        <textarea
+          id="ContactForm-site-desc"
+          class="textarea"
+          name="contact[Site description]"
+          rows="6"
+          placeholder="For example: 'I clicked Upload photo, chose my picture, but the app didn't remove the background...'"
+        >{{ form['Site description'] }}</textarea>
+        <p class="field__help">Include steps to reproduce, timestamps, screenshots (links) if any.</p>
+        <p class="field__error" data-error></p>
+      </div>
+    </div>
+
+    <div class="contact-actions">
+      <button type="button" class="button" id="ContactForm-submit">
+        Send
+      </button>
+    </div>
+  {%- endform -%}
+</div>
+
+<script>
+(function () {
+  const form = document.getElementById('ContactForm');
+  if (!form) return;
+
+  const q = (s) => form.querySelector(s);
+  const qa = (s) => form.querySelectorAll(s);
+
+  // ---------- Heading finder & updater ----------
+  let _contactFormHeading = null;
+  let _originalTitle = null;
+
+  function findHeading() {
+    if (_contactFormHeading) return _contactFormHeading;
+
+    // Prefer explicit id
+    const byId = document.getElementById('ContactFormHeading');
+    if (byId) {
+      _contactFormHeading = byId;
+      _originalTitle = _originalTitle ?? (byId.textContent || '').trim();
+      return _contactFormHeading;
+    }
+
+    // Look for heading inside nearest main/container
+    const container = form.closest('main') || document.body;
+    let heading = container.querySelector('h1, h2, .page-title, .section-title');
+    if (heading) {
+      _contactFormHeading = heading;
+      _originalTitle = _originalTitle ?? (heading.textContent || '').trim();
+      return _contactFormHeading;
+    }
+
+    // Fallback to first h1 or h2
+    heading = document.querySelector('h1, h2');
+    if (heading) {
+      _contactFormHeading = heading;
+      _originalTitle = _originalTitle ?? (heading.textContent || '').trim();
+      return _contactFormHeading;
+    }
+
+    return null;
+  }
+
+  function updatePageTitleForType(typeKey) {
+    const isSite = typeKey === 'Report A Site Issue' || typeKey === 'Site Issue Report';
+    const isDmca = typeKey === 'Copyright Infringement/DMCA Report' || typeKey === 'DMCA Report';
+
+    const heading = findHeading();
+    if (!heading) return;
+
+    if (_originalTitle == null) _originalTitle = (heading.textContent || '').trim();
+
+    if (isSite) {
+      heading.textContent = 'Site Issue Report';
+    } else if (isDmca) {
+      heading.textContent = 'DMCA Report';
+    } else {
+      heading.textContent = _originalTitle || 'Contact us';
+    }
+  }
+
+  // ---------- helpers for error UI ----------
+  function setErr(field, msg) {
+    const f = q(`.field[data-field="${field}"]`);
+    if (!f) return;
+    f.classList.add('field--error');
+    const e = f.querySelector('[data-error]');
+    if (e) e.textContent = msg;
+  }
+
+  function clrErr(field) {
+    const f = q(`.field[data-field="${field}"]`);
+    if (!f) return;
+    f.classList.remove('field--error');
+    const e = f.querySelector('[data-error]');
+    if (e) e.textContent = '';
+  }
+
+  function clrAll() {
+    qa('.field--error').forEach((f) => f.classList.remove('field--error'));
+    qa('[data-error]').forEach((e) => (e.textContent = ''));
+  }
+
+  // ---------- custom-select init ----------
+  function initSelect(sel) {
+    const trigger = sel.querySelector('[data-trigger]');
+    const text = sel.querySelector('.custom-select__text');
+    const dropdown = sel.querySelector('.custom-select__dropdown, [data-options]');
+    const hidden = sel.querySelector('[data-hidden-input]');
+    if (!trigger || !dropdown || !hidden || !text) return;
+
+    const isType = sel.getAttribute('data-name') === 'contact[Type of request]';
+    const isSubtype = sel.hasAttribute('data-subtype');
+
+    function fieldKeyFromSel(sel) {
+      const name = sel.getAttribute('data-name') || '';
+      if (name === 'contact[Type of request]') return 'type';
+      if (name === 'contact[Request detail]') return 'subtype';
+      if (name === 'contact[Site problem]') return 'site_problem';
+      if (name === 'contact[Click source]') return 'click_source';
+      return '';
+    }
+
+    trigger.addEventListener('click', (e) => {
+      e.preventDefault();
+      const open = sel.classList.contains('open');
+      qa('.custom-select.open').forEach((s) => {
+        s.classList.remove('open');
+        const dd = s.querySelector('.custom-select__dropdown');
+        if (dd) dd.setAttribute('aria-hidden', 'true');
+      });
+      if (!open) {
+        sel.classList.add('open');
+        dropdown.setAttribute('aria-hidden', 'false');
+      }
+    });
+
+    dropdown.addEventListener('click', (e) => {
+      const opt = e.target.closest('.custom-select__option');
+      if (!opt) return;
+
+      const v = opt.dataset.value ?? '';
+      const outgoing = isType && v === 'Report A Site Issue'
+        ? 'Site Issue Report'
+        : isType && v === 'Copyright Infringement/DMCA Report'
+        ? 'DMCA Report'
+        : v;
+      hidden.value = outgoing;
+      text.textContent = opt.textContent.trim();
+
+      dropdown.querySelectorAll('.custom-select__option').forEach((o) => o.removeAttribute('aria-selected'));
+      opt.setAttribute('aria-selected', 'true');
+
+      sel.classList.remove('open');
+      dropdown.setAttribute('aria-hidden', 'true');
+
+      if (isType) clrErr('type');
+      if (isSubtype) clrErr('subtype');
+
+      const fk = fieldKeyFromSel(sel);
+      if (fk) clrErr(fk);
+
+      try {
+        hidden.dispatchEvent(new Event('input', { bubbles: true }));
+        hidden.dispatchEvent(new Event('change', { bubbles: true }));
+      } catch (err) {
+        const evInput = document.createEvent('Event');
+        evInput.initEvent('input', true, true);
+        hidden.dispatchEvent(evInput);
+        const evChange = document.createEvent('Event');
+        evChange.initEvent('change', true, true);
+        hidden.dispatchEvent(evChange);
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!sel.contains(e.target)) {
+        sel.classList.remove('open');
+        dropdown.setAttribute('aria-hidden', 'true');
+      }
+    });
+  }
+
+  // ---------- subtype map ----------
+  const subtypeMap = {
+    Inquiry: [
+      'Ask about order delivery status',
+      'Ask about order detail',
+      'Ask about product',
+      'Ask about policy',
+      'Ask about payment/transaction',
+      'Asking about shipping offer',
+      'Ask about loyalty program',
+    ],
+    Request: [
+      'Modify my order details',
+      'Cancel my order',
+      'Remove parts of the order',
+      'Refund discount',
+      'Add items',
+      'Subscription',
+    ],
+    Complaint: ['I want to replace', 'I want a refund'],
+    'Review/Feedback': ['Good review', 'Bad review'],
+  };
+
+  // ---------- elements & flows ----------
+  const typeSel = q('.custom-select[data-name="contact[Type of request]"]');
+  const subtypeSel = q('.custom-select[data-subtype]');
+  const subtypeDrop = subtypeSel?.querySelector('[data-options]');
+  const subtypeText = subtypeSel?.querySelector('.custom-select__text');
+
+  const flowDefault = q('[data-flow="default"]');
+  const flowDmca = q('[data-flow="dmca"]');
+  const flowSite = q('[data-flow="siteissue"]');
+
+  const params = new URLSearchParams(window.location.search);
+
+  function getPresetTypeFromParams() {
+    const rawType = (params.get('type') || '').toLowerCase();
+    const dmcaFlag = params.has('dmcareport');
+
+    if (dmcaFlag) {
+      return 'Copyright Infringement/DMCA Report';
+    }
+
+    if (!rawType) return '';
+
+    const typeMap = {
+      inquiry: 'Inquiry',
+      request: 'Request',
+      complaint: 'Complaint',
+      review: 'Review/Feedback',
+      feedback: 'Review/Feedback',
+      copyright: 'Copyright Infringement/DMCA Report',
+      dmca: 'Copyright Infringement/DMCA Report',
+      'copyright-infringement': 'Copyright Infringement/DMCA Report',
+      copyright_infringement: 'Copyright Infringement/DMCA Report',
+      siteissue: 'Report A Site Issue',
+      site: 'Report A Site Issue',
+      'report-site': 'Report A Site Issue',
+      siteissue_v2: 'Report A Site Issue',
+      siteissuev2: 'Report A Site Issue',
+      siteissuev1: 'Report A Site Issue',
+    };
+
+    return typeMap[rawType] || '';
+  }
+
+  const presetType = getPresetTypeFromParams();
+
+  // ---------- updateFlow ----------
+  function updateFlow(typeKey) {
+    const isDMCA = typeKey === 'Copyright Infringement/DMCA Report' || typeKey === 'DMCA Report';
+    const isSite = typeKey === 'Report A Site Issue' || typeKey === 'Site Issue Report';
+
+    if (flowDefault) flowDefault.hidden = isDMCA || isSite;
+    if (flowDmca) flowDmca.hidden = !isDMCA;
+    if (flowSite) flowSite.hidden = !isSite;
+
+    // update heading text
+    updatePageTitleForType(typeKey);
+
+    // reset subtype when DMCA or Site Issue selected
+    if ((isDMCA || isSite) && subtypeSel) {
+      const hidden = subtypeSel.querySelector('[data-hidden-input]');
+      if (hidden) hidden.value = '';
+      if (subtypeText) {
+        subtypeText.innerHTML = '<span class="custom-select__placeholder">Select an option</span>';
+      }
+      clrErr('subtype');
+    }
+
+    // If switching away from site flow, clear its errors
+    if (!isSite && flowSite) {
+      ['product_link', 'site_problem', 'click_source', 'device', 'site_description'].forEach((f) => clrErr(f));
+    }
+
+    // If showing site flow, proactively clear errors and dispatch events for site fields that have values
+    if (isSite && flowSite) {
+      const siteInputs = [
+        { sel: '#ContactForm-product-link', field: 'product_link' },
+        { sel: '#ContactForm-site-problem', field: 'site_problem' },
+        { sel: '#ContactForm-click-source', field: 'click_source' },
+        { sel: '#ContactForm-device', field: 'device' },
+        { sel: '#ContactForm-site-desc', field: 'site_description' },
+      ];
+
+      siteInputs.forEach(({ sel, field }) => {
+        const el = q(sel);
+        if (!el) return;
+        if (el.value && el.value.trim()) clrErr(field);
+        try {
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        } catch (err) {
+          const evIn = document.createEvent('Event');
+          evIn.initEvent('input', true, true);
+          el.dispatchEvent(evIn);
+          const evCh = document.createEvent('Event');
+          evCh.initEvent('change', true, true);
+          el.dispatchEvent(evCh);
+        }
+      });
+    }
+
+    // --- disable & clear DMCA fields when NOT in DMCA flow ---
+    if (flowDmca) {
+      const dmcaFields = Array.from(flowDmca.querySelectorAll('input, textarea, select'));
+      if (!isDMCA) {
+        dmcaFields.forEach((el) => {
+          try {
+            if ('value' in el) el.value = '';
+            el.disabled = true;
+            el.removeAttribute('required');
+          } catch (e) {
+            // ignore
+          }
+        });
+        const st1 = q('#DMCA-st-1-hidden');
+        const st2 = q('#DMCA-st-2-hidden');
+        if (st1) st1.value = '';
+        if (st2) st2.value = '';
+      } else {
+        dmcaFields.forEach((el) => {
+          try {
+            el.disabled = false;
+          } catch (e) {
+            // ignore
+          }
+        });
+      }
+    }
+
+    // clear DMCA UI errors when leaving DMCA
+    if (!isDMCA && flowDmca) {
+      [
+        'dmca_description',
+        'dmca_company',
+        'dmca_address',
+        'dmca_phone',
+        'dmca_url',
+        'dmca_infringing',
+        'dmca_role',
+        'dmca_copyrighted',
+        'dmca_original',
+        'dmca_evidence',
+        'dmca_checkbox1',
+        'dmca_checkbox2',
+        'dmca_signature',
+      ].forEach((f) => clrErr(f));
+    }
+  }
+
+  // ---------- fillSubtype ----------
+  function fillSubtype(type, selected) {
+    if (!subtypeDrop || !subtypeText) return;
+    if (type === 'Copyright Infringement/DMCA Report') {
+      subtypeDrop.innerHTML = '';
+      const hidden = subtypeSel.querySelector('[data-hidden-input]');
+      if (hidden) hidden.value = '';
+      subtypeText.innerHTML = '<span class="custom-select__placeholder">Select an option</span>';
+      return;
+    }
+
+    subtypeDrop.innerHTML = '';
+    (subtypeMap[type] || []).forEach((label) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'custom-select__option';
+      b.dataset.value = label;
+      b.textContent = label;
+      if (selected === label) b.setAttribute('aria-selected', 'true');
+      subtypeDrop.appendChild(b);
+    });
+
+    const hidden = subtypeSel.querySelector('[data-hidden-input]');
+    if (selected) {
+      hidden.value = selected;
+      subtypeText.textContent = selected;
+    } else {
+      hidden.value = '';
+      subtypeText.innerHTML = '<span class="custom-select__placeholder">Select an option</span>';
+    }
+    clrErr('subtype');
+  }
+
+  // ---------- initial type hidden & preset ----------
+  const typeHidden = typeSel?.querySelector('[data-hidden-input]');
+  const typeTextEl = typeSel?.querySelector('.custom-select__text');
+
+  if (presetType && typeHidden && typeTextEl) {
+    // keep incoming preset for matching option; also update UI and heading
+    typeHidden.value = presetType;
+    const opt = typeSel.querySelector('.custom-select__option[data-value="' + presetType + '"]');
+    typeTextEl.textContent = opt ? opt.textContent.trim() : presetType;
+
+    try {
+      typeHidden.dispatchEvent(new Event('input', { bubbles: true }));
+      typeHidden.dispatchEvent(new Event('change', { bubbles: true }));
+    } catch (err) {
+      const evInput = document.createEvent('Event');
+      evInput.initEvent('input', true, true);
+      typeHidden.dispatchEvent(evInput);
+      const evChange = document.createEvent('Event');
+      evChange.initEvent('change', true, true);
+      typeHidden.dispatchEvent(evChange);
+    }
+
+    updatePageTitleForType(presetType);
+  }
+
+  const initType = typeHidden?.value || '';
+  const initDetail = subtypeSel?.querySelector('[data-hidden-input]')?.value || '';
+
+  if (initType) fillSubtype(initType, initDetail);
+  updateFlow(initType);
+
+  // ---------- handle type selection with mapping and title update ----------
+  if (typeSel) {
+    const dd = typeSel.querySelector('.custom-select__dropdown');
+    if (dd) {
+      dd.addEventListener('click', (e) => {
+        const opt = e.target.closest('.custom-select__option');
+        if (!opt) return;
+        const val = opt.dataset.value || '';
+
+        const hidden = typeSel.querySelector('[data-hidden-input]');
+        const textEl = typeSel.querySelector('.custom-select__text');
+
+        // map outgoing hidden value for emails/submission:
+        // "Report A Site Issue" => "Site Issue Report"
+        // "Copyright Infringement/DMCA Report" => "DMCA Report"
+        const outgoing = val === 'Report A Site Issue'
+          ? 'Site Issue Report'
+          : val === 'Copyright Infringement/DMCA Report'
+          ? 'DMCA Report'
+          : val || '';
+
+        if (hidden) {
+          hidden.value = outgoing;
+          if (textEl) textEl.textContent = opt.textContent.trim();
+
+          try {
+            hidden.dispatchEvent(new Event('input', { bubbles: true }));
+            hidden.dispatchEvent(new Event('change', { bubbles: true }));
+          } catch (err) {
+            const evInput = document.createEvent('Event');
+            evInput.initEvent('input', true, true);
+            hidden.dispatchEvent(evInput);
+            const evChange = document.createEvent('Event');
+            evChange.initEvent('change', true, true);
+            hidden.dispatchEvent(evChange);
+          }
+        }
+
+        // update subtype (use raw val for subtype map)
+        if (val !== 'Copyright Infringement/DMCA Report') {
+          fillSubtype(val, null);
+        } else {
+          fillSubtype('', null);
+        }
+
+        // update flows + title using both raw val and outgoing to be robust
+        updateFlow(val);
+        updateFlow(outgoing);
+
+        clrErr('type');
+
+        // If site issue selected, clear site errors & dispatch existing hidden values
+        if (val === 'Report A Site Issue' || outgoing === 'Site Issue Report') {
+          ['product_link', 'site_problem', 'click_source', 'device', 'site_description'].forEach((f) => clrErr(f));
+          ['#ContactForm-site-problem', '#ContactForm-click-source'].forEach((sel) => {
+            const h = q(sel);
+            if (h && h.value) {
+              try {
+                h.dispatchEvent(new Event('input', { bubbles: true }));
+                h.dispatchEvent(new Event('change', { bubbles: true }));
+              } catch (err) {
+                const evInput = document.createEvent('Event');
+                evInput.initEvent('input', true, true);
+                h.dispatchEvent(evInput);
+                const evChange = document.createEvent('Event');
+                evChange.initEvent('change', true, true);
+                h.dispatchEvent(evChange);
+              }
+            }
+          });
+        }
+      });
+    }
+  }
+
+  // ---------- init selects ----------
+  qa('.contact-form-advanced .custom-select').forEach(initSelect);
+
+  // ---------- site + dmca helpers & listeners ----------
+  const emailInput = q('#ContactForm-email');
+  const msgInput = q('#ContactForm-body');
+
+  emailInput?.addEventListener('input', () => {
+    if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailInput.value.trim())) clrErr('email');
+  });
+
+  msgInput?.addEventListener('input', () => {
+    if (msgInput.value.trim()) clrErr('message');
+  });
+
+  const cb1 = q('#Dmca-checkbox-1');
+  const cb2 = q('#Dmca-checkbox-2');
+  const st1Hidden = q('#DMCA-st-1-hidden');
+  const st2Hidden = q('#DMCA-st-2-hidden');
+
+  const st1Text =
+    "I confirm that I have a good-faith belief that the use of the material in the manner complained of is not authorized by law, principles of fair use, the copyright owner or the copyright owner's agent.";
+  const st2Text =
+    'I swear, under penalty of perjury, that the information in this infringement notice is accurate, and that I am the copyright owner or am authorized to act on behalf of the owner of an exclusive right that is allegedly infringed.';
+
+  function updateDMCAStatements() {
+    if (st1Hidden) st1Hidden.value = cb1 && cb1.checked ? st1Text : '';
+    if (st2Hidden) st2Hidden.value = cb2 && cb2.checked ? st2Text : '';
+  }
+
+  function dmcaLive() {
+    const map = {
+      dmca_description: '#Dmca-description',
+      dmca_url: '#Dmca-url',
+      dmca_infringing: '#Dmca-infringing',
+      dmca_evidence: '#Dmca-evidence',
+      dmca_signature: '#Dmca-signature',
+    };
+
+    Object.entries(map).forEach(([field, sel]) => {
+      const el = q(sel);
+      el?.addEventListener('input', () => {
+        if (el.value.trim()) clrErr(field);
+      });
+    });
+
+    if (cb1) {
+      cb1.addEventListener('change', (e) => {
+        if (e.target.checked) clrErr('dmca_checkbox1');
+        updateDMCAStatements();
+      });
+    }
+
+    if (cb2) {
+      cb2.addEventListener('change', (e) => {
+        if (e.target.checked) clrErr('dmca_checkbox2');
+        updateDMCAStatements();
+      });
+    }
+  }
+
+  dmcaLive();
+  updateDMCAStatements();
+
+  const dmcaRoles = qa('.dmca-role-option');
+  const dmcaRoleHidden = q('#Dmca-role');
+
+  dmcaRoles.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (!dmcaRoleHidden) return;
+      dmcaRoleHidden.value = btn.dataset.value;
+      dmcaRoles.forEach((b) => b.classList.toggle('is-active', b === btn));
+      clrErr('dmca_role');
+    });
+  });
+
+  if (dmcaRoleHidden && dmcaRoleHidden.value) {
+    dmcaRoles.forEach((b) => b.classList.toggle('is-active', b.dataset.value === dmcaRoleHidden.value));
+  }
+
+  // site fields listeners
+  const productInput = q('#ContactForm-product-link');
+  const deviceInput = q('#ContactForm-device');
+  const siteDescInput = q('#ContactForm-site-desc');
+  const siteProblemHidden = q('#ContactForm-site-problem');
+  const clickSourceHidden = q('#ContactForm-click-source');
+
+  if (productInput) {
+    productInput.addEventListener('input', () => {
+      if (productInput.value.trim()) clrErr('product_link');
+    });
+    productInput.addEventListener('change', () => {
+      if (productInput.value.trim()) clrErr('product_link');
+    });
+  }
+
+  if (deviceInput) {
+    deviceInput.addEventListener('input', () => {
+      if (deviceInput.value.trim()) clrErr('device');
+    });
+    deviceInput.addEventListener('change', () => {
+      if (deviceInput.value.trim()) clrErr('device');
+    });
+  }
+
+  if (siteDescInput) {
+    siteDescInput.addEventListener('input', () => {
+      if (siteDescInput.value.trim()) clrErr('site_description');
+    });
+    siteDescInput.addEventListener('change', () => {
+      if (siteDescInput.value.trim()) clrErr('site_description');
+    });
+  }
+
+  if (siteProblemHidden) {
+    siteProblemHidden.addEventListener('input', () => {
+      if (siteProblemHidden.value.trim()) clrErr('site_problem');
+    });
+    siteProblemHidden.addEventListener('change', () => {
+      if (siteProblemHidden.value.trim()) clrErr('site_problem');
+    });
+  }
+
+  if (clickSourceHidden) {
+    clickSourceHidden.addEventListener('input', () => {
+      if (clickSourceHidden.value.trim()) clrErr('click_source');
+    });
+    clickSourceHidden.addEventListener('change', () => {
+      if (clickSourceHidden.value.trim()) clrErr('click_source');
+    });
+  }
+
+  // ---------- validation & submit ----------
+  const emailRe = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+  function validate() {
+    clrAll();
+    let err = false;
+
+    const typeVal = typeHidden?.value.trim() || '';
+    const subtypeVal = subtypeSel?.querySelector('[data-hidden-input]')?.value.trim() || '';
+    const emailVal = emailInput.value.trim();
+
+    if (!emailVal || !emailRe.test(emailVal)) {
+      setErr('email', 'Invalid email.');
+      err = true;
+    }
+
+    if (!typeVal) {
+      setErr('type', 'Please select a request type.');
+      err = true;
+    }
+
+    const isDMCA = typeVal === 'DMCA Report' || typeVal === 'Copyright Infringement/DMCA Report';
+    const isSite = typeVal === 'Site Issue Report' || typeVal === 'Report A Site Issue';
+
+    if (!isDMCA && !isSite) {
+      if (!subtypeVal) {
+        setErr('subtype', 'Select a detail option.');
+        err = true;
+      }
+      if (!msgInput.value.trim()) {
+        setErr('message', 'Message cannot be empty.');
+        err = true;
+      }
+    } else if (isSite) {
+      const prod = q('#ContactForm-product-link');
+      const siteProblemHiddenInput = q('#ContactForm-site-problem');
+      const clickSourceHiddenInput = q('#ContactForm-click-source');
+      const device = q('#ContactForm-device');
+      const desc = q('#ContactForm-site-desc');
+
+      if (!prod || !prod.value.trim()) {
+        setErr('product_link', 'Product link is required.');
+        err = true;
+      }
+      if (!siteProblemHiddenInput || !siteProblemHiddenInput.value.trim()) {
+        setErr('site_problem', 'Please choose a problem.');
+        err = true;
+      }
+      if (!clickSourceHiddenInput || !clickSourceHiddenInput.value.trim()) {
+        setErr('click_source', 'Please choose where you clicked from.');
+        err = true;
+      }
+      if (!device || !device.value.trim()) {
+        setErr('device', 'Device is required.');
+        err = true;
+      }
+      if (!desc || !desc.value.trim()) {
+        setErr('site_description', 'Please describe what happened.');
+        err = true;
+      }
+    } else {
+      const required = {
+        dmca_description: '#Dmca-description',
+        dmca_url: '#Dmca-url',
+        dmca_infringing: '#Dmca-infringing',
+        dmca_role: '#Dmca-role',
+        dmca_evidence: '#Dmca-evidence',
+        dmca_signature: '#Dmca-signature',
+      };
+
+      Object.entries(required).forEach(([field, sel]) => {
+        const el = q(sel);
+        if (!el || !el.value.trim()) {
+          setErr(field, 'This field is required.');
+          err = true;
+        }
+      });
+
+      if (!cb1 || !cb1.checked) {
+        setErr('dmca_checkbox1', 'Required.');
+        err = true;
+      }
+      if (!cb2 || !cb2.checked) {
+        setErr('dmca_checkbox2', 'Required.');
+        err = true;
+      }
+
+      updateDMCAStatements();
+    }
+
+    if (err) {
+      const first = form.querySelector('.field--error');
+      if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    return !err;
+  }
+
+  const submitBtn = q('#ContactForm-submit');
+  if (submitBtn) {
+    submitBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (validate()) form.submit();
+    });
+  }
+
+  form.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      if (validate()) form.submit();
+    }
+  });
+})();
+</script>
+</div>
+
+{% stylesheet %}
+  .contact-form-advanced {
+    width: 100%;
+  }
+
+  .contact-form-advanced__form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+  }
+
+  .contact-form-advanced .field {
+    position: static;
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .contact-form-advanced .field::after,
+  .contact-form-advanced .field__label::before,
+  .contact-form-advanced .field__label::after,
+  .contact-form-advanced .contact-actions .button::after {
+    content: none !important;
+    display: none !important;
+  }
+
+  .contact-form-advanced .field__label {
+    position: static;
+    display: block;
+    margin: 0 0 6px;
+    padding: 0;
+    transform: none;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--color-foreground);
+    pointer-events: auto !important;
+  }
+
+  .contact-form-advanced .required {
+    color: #b91c1c;
+    margin-left: 2px;
+  }
+
+  .contact-form-advanced .field__help {
+    display: block;
+    margin: 5px 0 0;
+    font-size: 12px;
+    color: color-mix(in srgb, var(--color-foreground) 70%, transparent);
+  }
+
+  .contact-form-advanced .field__error {
+    display: none;
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: #b91c1c;
+  }
+
+  .contact-form-advanced .field--error .field__error {
+    display: block;
+  }
+
+  .contact-form-advanced .input,
+  .contact-form-advanced .textarea,
+  .contact-form-advanced .custom-select__trigger {
+    width: 100%;
+    box-sizing: border-box;
+    padding: var(--padding-lg) var(--padding-xl);
+    border-radius: var(--style-border-radius-inputs);
+    border: var(--style-border-width-inputs) solid var(--color-input-border);
+    background: var(--color-input-background);
+    color: var(--color-input-text);
+    font: inherit;
+    line-height: 1.4;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  }
+
+  .contact-form-advanced .textarea {
+    min-height: var(--input-textarea-min-height);
+    resize: vertical;
+  }
+
+  .contact-form-advanced .input::placeholder,
+  .contact-form-advanced .textarea::placeholder {
+    color: color-mix(in srgb, var(--color-input-text) 55%, transparent);
+    font-weight: 400;
+    opacity: 1;
+  }
+
+  .contact-form-advanced .input:focus,
+  .contact-form-advanced .textarea:focus,
+  .contact-form-advanced .custom-select.open .custom-select__trigger {
+    border-color: var(--color-foreground);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-foreground) 35%, transparent);
+  }
+
+  .contact-form-advanced .field--error .input,
+  .contact-form-advanced .field--error .textarea,
+  .contact-form-advanced .field--error .custom-select__trigger {
+    border-color: #f97373;
+    box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.5);
+  }
+
+  .contact-form-advanced__status {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: var(--style-border-radius-inputs);
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+
+  .contact-form-advanced__status-icon {
+    font-size: 16px;
+    line-height: 1;
+    margin-top: 1px;
+  }
+
+  .contact-form-advanced__status--success {
+    background: rgba(34, 197, 94, 0.06);
+    border: 1px solid rgba(22, 163, 74, 0.35);
+    color: #166534;
+  }
+
+  .contact-form-advanced .custom-select {
+    position: relative;
+  }
+
+  .contact-form-advanced .custom-select__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .contact-form-advanced .custom-select__placeholder {
+    opacity: 0.6;
+  }
+
+  .contact-form-advanced .custom-select__caret {
+    flex-shrink: 0;
+    width: 9px;
+    height: 9px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+    opacity: 0.85;
+    transition: transform 0.15s ease;
+  }
+
+  .contact-form-advanced .custom-select.open .custom-select__caret {
+    transform: rotate(-135deg);
+  }
+
+  .contact-form-advanced .custom-select__dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 40;
+    max-height: 220px;
+    overflow-y: auto;
+    border-radius: var(--style-border-radius-inputs);
+    background: var(--color-background);
+    border: var(--style-border-width-inputs) solid var(--color-input-border);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.16);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(4px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  .contact-form-advanced .custom-select.open .custom-select__dropdown {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .contact-form-advanced .custom-select__option {
+    width: 100%;
+    padding: 9px 13px;
+    font: inherit;
+    font-size: 14px;
+    color: var(--color-foreground);
+    text-align: left;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .contact-form-advanced .custom-select__option:hover,
+  .contact-form-advanced .custom-select__option[aria-selected='true'] {
+    background: color-mix(in srgb, var(--color-foreground) 10%, transparent);
+  }
+
+  .contact-form-advanced .contact-actions {
+    margin-top: 10px;
+  }
+
+  .contact-form-advanced .contact-actions .button {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .contact-form-advanced .field-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+  }
+
+  .contact-form-advanced .contact-flow[hidden] {
+    display: none !important;
+  }
+
+  .contact-form-advanced .dmca-role-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .contact-form-advanced .dmca-role-option {
+    border-radius: var(--style-border-radius-buttons-primary);
+    padding: 7px 14px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    border: var(--style-border-width-inputs) solid var(--color-input-border);
+    background: transparent;
+    color: var(--color-foreground);
+    cursor: pointer;
+    outline: none;
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+  }
+
+  .contact-form-advanced .dmca-role-option:hover {
+    background: color-mix(in srgb, var(--color-foreground) 6%, transparent);
+  }
+
+  .contact-form-advanced .dmca-role-option.is-active {
+    background: var(--color-button);
+    border-color: var(--color-button);
+    color: var(--color-button-text);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:names.contact_form",
+  "tag": null,
+  "settings": [
+    {
+      "type": "select",
+      "id": "width",
+      "label": "t:settings.width_desktop",
+      "options": [
+        {
+          "value": "fit-content",
+          "label": "t:options.fit_content"
+        },
+        {
+          "value": "custom",
+          "label": "t:options.custom"
+        }
+      ],
+      "default": "fit-content"
+    },
+    {
+      "type": "range",
+      "id": "custom_width",
+      "label": "t:settings.width",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 100,
+      "visible_if": "{{ block.settings.width == 'custom' }}"
+    },
+    {
+      "type": "select",
+      "id": "width_mobile",
+      "label": "t:settings.width_mobile",
+      "options": [
+        {
+          "value": "fit-content",
+          "label": "t:options.fit_content"
+        },
+        {
+          "value": "custom",
+          "label": "t:options.custom"
+        }
+      ],
+      "default": "fit-content"
+    },
+    {
+      "type": "range",
+      "id": "custom_width_mobile",
+      "label": "t:settings.width",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 100,
+      "visible_if": "{{ block.settings.width_mobile == 'custom' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "inherit_color_scheme",
+      "label": "t:settings.inherit_color_scheme",
+      "default": true
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1",
+      "visible_if": "{{ block.settings.inherit_color_scheme == false }}"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-start",
+      "label": "t:settings.left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-end",
+      "label": "t:settings.right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.contact_form",
+      "category": "t:categories.forms"
+    }
+  ]
+}
+{% endschema %}

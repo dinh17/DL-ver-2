@@ -1,0 +1,261 @@
+{%- doc -%}
+  Renders a confirmation dialog after a successful add to cart.
+{%- enddoc -%}
+
+{%- if settings.show_atc_confirmation -%}
+  {%- capture atc_dialog_content -%}
+    <div class="atc-confirmation-dialog__success">
+      <span class="atc-confirmation-dialog__success-icon svg-wrapper" aria-hidden="true">
+        {{- 'icon-checkmark.svg' | inline_asset_content -}}
+      </span>
+      <p class="atc-confirmation-dialog__success-text">
+        {{ 'content.item_added_to_cart_heading' | t }}
+      </p>
+    </div>
+
+    <div class="atc-confirmation-dialog__product" ref="productPreview">
+      <div class="atc-confirmation-dialog__image-wrap" ref="productImageWrap" hidden>
+        <img
+          ref="productImage"
+          class="atc-confirmation-dialog__image"
+          alt=""
+          width="120"
+          height="120"
+          loading="lazy"
+        >
+      </div>
+
+      <div class="atc-confirmation-dialog__details">
+        <p ref="productTitle" class="atc-confirmation-dialog__title h5"></p>
+        <div class="atc-confirmation-dialog__options" ref="productOptions"></div>
+        <p class="atc-confirmation-dialog__meta">
+          <span class="atc-confirmation-dialog__meta-label">{{ 'products.product.quantity' | t }}:</span>
+          <span ref="productQuantity" class="atc-confirmation-dialog__meta-value"></span>
+        </p>
+        <p ref="productPrice" class="atc-confirmation-dialog__price"></p>
+      </div>
+    </div>
+  {%- endcapture -%}
+
+  {%- capture atc_dialog_footer -%}
+    <button
+      type="button"
+      class="button button-secondary atc-confirmation-dialog__continue"
+      on:click="/closeDialog"
+    >
+      {{ 'actions.continue_shopping' | t }}
+    </button>
+    <a href="{{ routes.cart_url }}" class="button atc-confirmation-dialog__view-cart">
+      {{ 'content.view_cart_checkout' | t }}
+    </a>
+  {%- endcapture -%}
+
+  <atc-confirmation-dialog
+    class="atc-confirmation-dialog"
+    data-auto-close="{{ settings.atc_confirmation_auto_close }}"
+    data-auto-close-delay="{{ settings.atc_confirmation_auto_close_delay | default: 5 }}"
+    data-money-format="{{ shop.money_format | escape }}"
+    data-currency="{{ cart.currency.iso_code }}"
+    data-show-currency-code="{{ settings.currency_code_enabled_cart_items }}"
+    data-quantity-label="{{ 'products.product.quantity' | t | escape }}"
+  >
+    {% render 'dialog',
+      wrapper_component: false,
+      dialog_id: 'atc-confirmation-dialog',
+      title_text: '',
+      content: atc_dialog_content,
+      footer_content: atc_dialog_footer,
+      dialog_classes: 'atc-confirmation-dialog__dialog',
+      dialog_attributes: 'scroll-lock',
+      body_classes: 'atc-confirmation-dialog__body',
+      show_close_button: false
+    %}
+  </atc-confirmation-dialog>
+{%- endif -%}
+
+{% stylesheet %}
+  html[data-atc-confirmation-open] sticky-add-to-cart .sticky-add-to-cart__bar {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  .atc-confirmation-dialog__dialog:not([open]) {
+    display: none;
+  }
+
+  .atc-confirmation-dialog__dialog[open] {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: translate(-50%, -50%) !important;
+    display: flex;
+    flex-direction: column;
+    width: min(calc(100vw - 2rem), 36rem);
+    max-width: min(calc(100vw - 2rem), 36rem);
+    max-height: min(90vh, 40rem);
+    height: auto;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    z-index: var(--layer-temporary);
+    animation: fadeIn var(--animation-speed) var(--animation-easing) forwards;
+  }
+
+  .atc-confirmation-dialog__dialog.dialog-closing {
+    animation: fadeOut var(--animation-speed) var(--animation-easing) forwards;
+  }
+
+  .atc-confirmation-dialog__dialog[open]::backdrop {
+    animation: fadeIn var(--animation-speed) var(--animation-easing) forwards;
+  }
+
+  .atc-confirmation-dialog__body {
+    align-items: stretch;
+    text-align: left;
+    padding: var(--padding-lg);
+    gap: var(--padding-lg);
+  }
+
+  .atc-confirmation-dialog__success {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--padding-sm);
+    color: var(--color-success);
+  }
+
+  .atc-confirmation-dialog__success-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  .atc-confirmation-dialog__success-text {
+    margin: 0;
+    font-size: var(--font-paragraph--size);
+    font-weight: var(--font-weight-medium, 500);
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  .atc-confirmation-dialog__product {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--padding-md);
+    width: 100%;
+  }
+
+  .atc-confirmation-dialog__image-wrap {
+    flex-shrink: 0;
+    width: 6.5rem;
+    height: 6.5rem;
+    border-radius: var(--style-border-radius-buttons-primary, 8px);
+    overflow: hidden;
+    background: rgb(var(--color-foreground-rgb) / var(--opacity-5, 0.05));
+  }
+
+  .atc-confirmation-dialog__image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  .atc-confirmation-dialog__details {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--padding-xs);
+  }
+
+  .atc-confirmation-dialog__title {
+    margin: 0;
+    font-weight: var(--font-weight-semibold, 600);
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .atc-confirmation-dialog__options {
+    margin: 0;
+    display: grid;
+    gap: 0.125rem;
+  }
+
+  .atc-confirmation-dialog__options:empty {
+    display: none;
+  }
+
+  .atc-confirmation-dialog__option {
+    margin: 0;
+    font-size: var(--font-paragraph-small--size, 0.875rem);
+    line-height: 1.4;
+    color: rgb(var(--color-foreground-rgb) / var(--opacity-subdued-text, 0.72));
+  }
+
+  .atc-confirmation-dialog__option-label {
+    color: rgb(var(--color-foreground-rgb) / var(--opacity-subdued-text, 0.72));
+  }
+
+  .atc-confirmation-dialog__option-value {
+    color: rgb(var(--color-foreground-rgb) / 1);
+  }
+
+  .atc-confirmation-dialog__meta {
+    margin: 0;
+    font-size: var(--font-paragraph-small--size, 0.875rem);
+    line-height: 1.4;
+  }
+
+  .atc-confirmation-dialog__meta-label {
+    color: rgb(var(--color-foreground-rgb) / var(--opacity-subdued-text, 0.72));
+  }
+
+  .atc-confirmation-dialog__meta-value {
+    color: rgb(var(--color-foreground-rgb) / 1);
+  }
+
+  .atc-confirmation-dialog__price {
+    margin: var(--padding-xs) 0 0;
+    font-size: var(--font-size--lg, 1.125rem);
+    font-weight: var(--font-weight-semibold, 600);
+    color: var(--color-primary, #c45c26);
+  }
+
+  .atc-confirmation-dialog__dialog .dialog__footer {
+    flex-direction: row;
+    align-items: stretch;
+    gap: var(--padding-sm);
+    padding: var(--padding-md) var(--padding-lg) var(--padding-lg);
+  }
+
+  .atc-confirmation-dialog__continue,
+  .atc-confirmation-dialog__view-cart {
+    flex: 1 1 0;
+    width: auto;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+  }
+
+  @media screen and (max-width: 749px) {
+    .atc-confirmation-dialog__dialog[open] {
+      inset: auto !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      width: min(calc(100vw - 2rem), 36rem);
+      max-width: calc(100vw - 2rem);
+      max-height: min(90vh, 40rem);
+      height: auto;
+      padding: 0;
+    }
+
+    .atc-confirmation-dialog__dialog .dialog__footer {
+      flex-direction: column;
+    }
+  }
+{% endstylesheet %}

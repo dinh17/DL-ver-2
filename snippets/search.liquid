@@ -1,0 +1,288 @@
+{%- doc -%}
+  Renders the search action button.
+
+  @param {string} [style] - The style of the search action.
+  @param {string} [class] - Additional classes for the search action.
+  @param {string} [display_style] - The display style ('icon' or 'text').
+
+  @example
+  {% render 'search', style: 'default', class: 'custom-class', display_style: 'icon' %}
+{%- enddoc -%}
+
+{% unless style == 'none' %}
+  {% if style == 'inline' %}
+    <script
+      src="{{ 'predictive-search.js' | asset_url }}"
+      type="module"
+      fetchpriority="low"
+    ></script>
+    <div class="search-action search-action--inline{% if class != blank %} {{ class | strip }}{% endif %}">
+      <predictive-search-component
+        class="predictive-search color-{{ settings.popover_color_scheme }}"
+        style="--product-corner-radius: {{ settings.product_corner_radius | default: 8 | append: 'px' }}; --card-corner-radius: {{ settings.card_corner_radius | default: 8 | append: 'px' }};"
+        data-section-id="predictive-search"
+        data-testid="search-component--inline"
+        role="search"
+        aria-label="{{ 'content.search_input_label' | t }}"
+      >
+        <form
+          action="{{ routes.search_url }}"
+          method="get"
+          role="search"
+          class="predictive-search-form"
+          ref="form"
+          on:keydown="/onSearchKeyDown"
+        >
+          <div class="predictive-search-form__header">
+            <div class="predictive-search-form__header-inner">
+              <label
+                for="search-inline-input"
+                class="visually-hidden"
+              >
+                {{- 'content.search_input_label' | t -}}
+              </label>
+              <input
+                class="search-input"
+                id="search-inline-input"
+                type="search"
+                name="q"
+                role="combobox"
+                aria-expanded="false"
+                aria-owns="search-inline-results"
+                aria-controls="search-inline-results"
+                aria-haspopup="listbox"
+                aria-autocomplete="list"
+                autocomplete="off"
+                placeholder="{{ 'content.search_input_placeholder' | t }}"
+                ref="searchInput"
+                on:input="/search"
+                on:keydown="/onSearchKeyDown"
+              >
+              <input
+                name="options[prefix]"
+                type="hidden"
+                value="last"
+              >
+              <span class="svg-wrapper predictive-search__icon">
+                {{ 'icon-search.svg' | inline_asset_content }}
+              </span>
+              <button
+                type="button"
+                class="button-unstyled predictive-search__reset-button"
+                ref="resetButton"
+                hidden
+                on:click="/resetSearch"
+              >
+                {{ 'actions.clear' | t }}
+              </button>
+              <button
+                type="submit"
+                class="button header-inline-search__submit"
+              >
+                {{ 'content.search' | t }}
+              </button>
+            </div>
+          </div>
+          <div
+            class="predictive-search-form__content-wrapper"
+            id="search-inline-results"
+          >
+            <div
+              class="predictive-search-form__content"
+              ref="predictiveSearchResults"
+              on:click="/handleModalClick"
+            >
+              {% render 'predictive-search-empty-state',
+                load_empty_state: true,
+                shadow_opacity: 0.1,
+                products_test_id: 'products-list-default--inline'
+              %}
+            </div>
+            <div class="predictive-search-form__footer">
+              <button
+                class="button predictive-search__search-button"
+                ref="viewAllButton"
+              >
+                {{ 'content.search_results_view_all' | t }}
+              </button>
+            </div>
+          </div>
+        </form>
+      </predictive-search-component>
+    </div>
+  {% else %}
+    <search-button
+      class="search-action{% if display_style == 'text' %} search-action--text{% endif %}{% if class != blank %} {{ class | strip }}{% endif %}"
+    >
+      <button
+        on:click="#search-modal/showDialog"
+        class="button-unstyled header-actions__action{% if display_style == 'text' %} header-actions__text-style{% endif %}"
+        aria-label="{{ 'content.search_input_label' | t }}"
+        aria-haspopup="dialog"
+      >
+        <span class="{% if display_style == 'icon' %}hidden{% else %}mobile:hidden{% endif %}">
+          {{ 'content.search' | t }}
+        </span>
+
+        <span class="svg-wrapper {% if display_style != 'icon' %}desktop:hidden{% endif %}">
+          {{ 'icon-search.svg' | inline_asset_content }}
+        </span>
+      </button>
+    </search-button>
+  {% endif %}
+{% endunless %}
+
+{% stylesheet %}
+  .search-action {
+    --search-border-radius: var(--style-border-radius-inputs);
+    --search-border-width: var(--style-border-width-inputs);
+
+    display: flex;
+  }
+
+  /* Give the center column more space when it contains the inline search bar (top row only) */
+  .header__row--top .header__columns:has(.header__column--center .search-action--inline) {
+    --header-center: minmax(0, 2fr);
+    --header-left: minmax(max-content, 1fr);
+    --header-right: minmax(max-content, 1fr);
+  }
+
+  /* Raise the search dropdown above all header content, including mega-menus which have
+     z-index up to 12 within the header stacking context */
+  .search-action--inline .predictive-search-form__content-wrapper {
+    z-index: 999 !important;
+  }
+
+  /* Inline search bar — always-visible pill input with dropdown results */
+  .search-action--inline {
+    --search-border-radius: 999px;
+    --search-border-width: 1px;
+
+    width: 100%;
+    max-width: 600px;
+    position: relative;
+    margin-inline: auto;
+  }
+
+  @media screen and (max-width: 749px) {
+    .search-action--inline {
+      display: none;
+    }
+  }
+
+  .search-action--inline predictive-search-component {
+    background: transparent;
+    z-index: var(--layer-overlay);
+    align-items: stretch;
+  }
+
+  .search-action--inline .predictive-search-form__header {
+    position: static;
+    z-index: var(--layer-overlay);
+    padding: 0;
+    border: var(--search-border-width) solid var(--header-row-border-color, navy);
+    border-radius: var(--search-border-radius);
+    background: var(--color-input-background);
+    transition: border-color var(--animation-speed) var(--animation-easing);
+  }
+
+  .search-action--inline .predictive-search-form__header:focus-within {
+    border-color: var(--header-row-border-color, navy);
+  }
+
+  /* Keep pill shape at all times — override predictive-search-styles.liquid rules
+     that flatten the bottom corners when the dropdown opens */
+  .search-action--inline .predictive-search-form__header:focus-within,
+  .search-action--inline .predictive-search:has(.predictive-search-dropdown) .predictive-search-form__header:focus-within,
+  .search-action--inline .predictive-search:has(.predictive-search-dropdown[aria-expanded='true']) .predictive-search-form__header:focus-within {
+    border-radius: var(--search-border-radius);
+  }
+
+  .search-action--inline .predictive-search:has(.predictive-search-dropdown[aria-expanded='true']) .predictive-search-form__header-inner:focus-within {
+    border-radius: var(--search-border-radius);
+  }
+
+  .search-action--inline .predictive-search-form__header-inner {
+    border: none;
+    border-radius: var(--search-border-radius);
+    background: transparent;
+  }
+
+  /* Search input shrinks to give room for the submit button */
+  .search-action--inline input.search-input {
+    width: auto;
+    flex: 1;
+    min-width: 0;
+    padding-block: calc(var(--padding-sm) - 2px);
+    padding-inline-end: var(--padding-xs);
+  }
+
+  .header-inline-search__submit {
+    flex-shrink: 0;
+    white-space: nowrap;
+    border-radius: 999px;
+    margin-inline-end: 4px;
+    padding-block: calc(var(--button-padding-block) - 2px);
+  }
+
+  .search-action--inline .predictive-search-form__content-wrapper {
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: var(--layer-overlay);
+    box-shadow: var(--shadow-popover);
+    border: var(--style-border-popover);
+    border-radius: var(--style-border-radius-popover);
+    background: var(--color-background);
+    display: none;
+  }
+
+  .search-action--inline predictive-search-component:focus-within .predictive-search-form__content-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+
+  @media screen and (min-width: 750px) {
+    .search-action--inline .predictive-search-form__content {
+      max-height: 75dvh;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .search-action--hidden-on-drawer {
+      display: none;
+    }
+  }
+
+  @media screen and (min-width: 750px) {
+    [data-menu-style='drawer'] .search-action--hidden-on-drawer {
+      display: none;
+    }
+
+    [data-menu-style='menu'] .search-action--hidden-on-menu {
+      display: none;
+    }
+  }
+
+  [data-menu-style='menu'] .header__column--left .search-action {
+    @media screen and (min-width: 750px) {
+      margin-inline: calc(var(--padding-lg) * -1);
+    }
+  }
+
+  .header__column--right .search-action {
+    @media screen and (min-width: 750px) {
+      margin-inline: calc(var(--gap-md) * -1) calc(var(--gap-xs) * -1);
+    }
+  }
+
+  @media screen and (min-width: 750px) {
+    .header__column--right .search-action--text {
+      margin-inline: 0;
+    }
+
+    [data-menu-style='menu'] .header__column--left .search-action--text {
+      margin-inline: 0;
+    }
+  }
+{% endstylesheet %}

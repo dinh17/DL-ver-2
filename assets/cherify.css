@@ -1,0 +1,1221 @@
+/**
+ * Cherify — design tokens & utilities (Wanderprints-style build)
+ *
+ * This file is named for the brand. The `ch-` prefix is used only for:
+ * - CSS custom properties (--ch-*)
+ * - utility classes (.ch-*)
+ *
+ * Does not override theme color scheme vars (--color-primary, etc.).
+ */
+
+/* --------------------------------------------------------------------------
+   Design tokens
+   -------------------------------------------------------------------------- */
+:root {
+  /* Brand palette (static; use for announcement bar, custom hero, etc.) */
+  --ch-navy: #032d45;
+  --ch-orange: #ff855a;
+  /* Deeper orange for prices / emphasis (vs --ch-orange and scheme button-hover #e86d42) */
+  --ch-price-accent: #f36621;
+  --ch-soft-cream: #f8f4e6;
+  --ch-dusty-blue: #8fb9d0;
+  --ch-soft-peach: #f9dfc6;
+  --ch-white: #ffffff;
+  --ch-text: #1a1a1a;
+  --ch-text-muted: #666666;
+  --ch-border: #e5e5e5;
+  /* Full-bleed footer band (section-background in footer-group) */
+  --ch-footer-bg: var(--ch-soft-cream);
+
+  /* Typography: Poppins matches theme Typography settings; fallbacks for preconnect */
+  --ch-font-heading: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --ch-font-body: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --ch-font-accent: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --ch-text-hero: 40px;
+  --ch-text-section: 28px;
+  --ch-text-sub: 20px;
+  --ch-text-body: 14px;
+  --ch-text-caption: 13px;
+
+  --ch-lh-heading: 1.2;
+  --ch-lh-body: 1.5;
+  --ch-ls-heading: -0.01em;
+  --ch-ls-body: 0.005em;
+
+  /* Spacing */
+  --ch-space-xs: 0.25rem;
+  --ch-space-sm: 0.5rem;
+  --ch-space-md: 1rem;
+  --ch-space-lg: 1.5rem;
+  --ch-space-xl: 2rem;
+  --ch-space-2xl: 3rem;
+  --ch-space-3xl: 4rem;
+
+  /* Layout */
+  --ch-container-max: 75rem;
+  --ch-radius-sm: 0.25rem;
+  --ch-radius: 0.5rem;
+  --ch-radius-lg: 1rem;
+
+  /* Breakpoints (reference — use in media queries below) */
+  --ch-bp-tablet: 48rem;
+  --ch-bp-mobile: 30rem;
+}
+
+@media screen and (min-width: 750px) {
+  :root {
+    --ch-text-hero: 48px;
+    --ch-text-section: 32px;
+    --ch-text-sub: 22px;
+    --ch-text-body: 16px;
+  }
+}
+
+@media screen and (min-width: 990px) {
+  :root {
+    --ch-text-hero: 56px;
+    --ch-text-section: 36px;
+    --ch-text-sub: 24px;
+    --ch-text-body: 18px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Typography — maps to theme fonts when present (editor picks), else Cherify stack
+   -------------------------------------------------------------------------- */
+.ch-font-heading {
+  font-family: var(--font-heading--family, var(--ch-font-heading));
+}
+
+.ch-font-body {
+  font-family: var(--font-body--family, var(--ch-font-body));
+}
+
+.ch-font-accent {
+  font-family: var(--font-accent--family, var(--ch-font-accent));
+}
+
+.ch-text-hero {
+  font-family: var(--font-heading--family, var(--ch-font-heading));
+  font-size: var(--ch-text-hero);
+  font-weight: 600;
+  line-height: var(--ch-lh-heading);
+  letter-spacing: var(--ch-ls-heading);
+}
+
+.ch-text-section {
+  font-family: var(--font-heading--family, var(--ch-font-heading));
+  font-size: var(--ch-text-section);
+  font-weight: 500;
+  line-height: var(--ch-lh-heading);
+  letter-spacing: var(--ch-ls-heading);
+}
+
+.ch-text-sub {
+  font-family: var(--font-subheading--family, var(--ch-font-body));
+  font-size: var(--ch-text-sub);
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.ch-text-body {
+  font-family: var(--font-body--family, var(--ch-font-body));
+  font-size: var(--ch-text-body);
+  font-weight: 400;
+  line-height: var(--ch-lh-body);
+  letter-spacing: var(--ch-ls-body);
+}
+
+.ch-text-caption {
+  font-family: var(--font-body--family, var(--ch-font-body));
+  font-size: var(--ch-text-caption);
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: var(--ch-ls-body);
+  color: var(--ch-text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   Layout
+   -------------------------------------------------------------------------- */
+.ch-container {
+  width: 100%;
+  max-width: var(--ch-container-max);
+  margin-inline: auto;
+  padding-inline: var(--page-margin, var(--ch-space-md));
+}
+
+.ch-section {
+  padding-block: var(--ch-space-2xl);
+}
+
+.ch-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ch-space-md);
+}
+
+.ch-stack--lg {
+  gap: var(--ch-space-lg);
+}
+
+.ch-flex {
+  display: flex;
+}
+
+.ch-flex--wrap {
+  flex-wrap: wrap;
+}
+
+.ch-items-center {
+  align-items: center;
+}
+
+.ch-items-start {
+  align-items: flex-start;
+}
+
+.ch-justify-between {
+  justify-content: space-between;
+}
+
+.ch-justify-center {
+  justify-content: center;
+}
+
+.ch-gap-sm {
+  gap: var(--ch-space-sm);
+}
+
+.ch-gap-md {
+  gap: var(--ch-space-md);
+}
+
+.ch-gap-lg {
+  gap: var(--ch-space-lg);
+}
+
+.ch-grid {
+  display: grid;
+  gap: var(--ch-space-lg);
+}
+
+.ch-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ch-grid--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media screen and (max-width: 48rem) {
+  .ch-grid--4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 30rem) {
+
+  .ch-grid--2,
+  .ch-grid--4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Spacing utilities (margin / padding)
+   -------------------------------------------------------------------------- */
+.ch-m-0 {
+  margin: 0;
+}
+
+.ch-mt-sm {
+  margin-top: var(--ch-space-sm);
+}
+
+.ch-mt-md {
+  margin-top: var(--ch-space-md);
+}
+
+.ch-mt-lg {
+  margin-top: var(--ch-space-lg);
+}
+
+.ch-mt-xl {
+  margin-top: var(--ch-space-xl);
+}
+
+.ch-mb-sm {
+  margin-bottom: var(--ch-space-sm);
+}
+
+.ch-mb-md {
+  margin-bottom: var(--ch-space-md);
+}
+
+.ch-mb-lg {
+  margin-bottom: var(--ch-space-lg);
+}
+
+.ch-mx-auto {
+  margin-inline: auto;
+}
+
+.ch-p-sm {
+  padding: var(--ch-space-sm);
+}
+
+.ch-p-md {
+  padding: var(--ch-space-md);
+}
+
+.ch-p-lg {
+  padding: var(--ch-space-lg);
+}
+
+.ch-px-md {
+  padding-inline: var(--ch-space-md);
+}
+
+.ch-py-lg {
+  padding-block: var(--ch-space-lg);
+}
+
+/* --------------------------------------------------------------------------
+   Surfaces & brand colors
+   -------------------------------------------------------------------------- */
+.ch-bg-navy {
+  background-color: var(--ch-navy);
+  color: var(--ch-white);
+}
+
+.ch-bg-orange {
+  background-color: var(--ch-orange);
+  color: var(--ch-white);
+}
+
+.ch-bg-cream {
+  background-color: var(--ch-soft-cream);
+  color: var(--ch-text);
+}
+
+.ch-bg-peach {
+  background-color: var(--ch-soft-peach);
+  color: var(--ch-text);
+}
+
+.ch-bg-dusty-blue {
+  background-color: var(--ch-dusty-blue);
+  color: var(--ch-navy);
+}
+
+.ch-text-navy {
+  color: var(--ch-navy);
+}
+
+.ch-text-orange {
+  color: var(--ch-orange);
+}
+
+.ch-border {
+  border: 1px solid var(--ch-border);
+}
+
+.ch-rounded {
+  border-radius: var(--ch-radius);
+}
+
+.ch-rounded-lg {
+  border-radius: var(--ch-radius-lg);
+}
+
+/* --------------------------------------------------------------------------
+   Buttons (raw utility — pair with theme buttons where possible)
+   -------------------------------------------------------------------------- */
+.ch-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ch-space-sm);
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font-body--family, var(--ch-font-body));
+  font-size: var(--ch-text-body);
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: none;
+  border: none;
+  border-radius: var(--ch-radius);
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.ch-btn--primary {
+  background-color: var(--ch-orange);
+  color: var(--ch-white);
+}
+
+.ch-btn--primary:hover {
+  filter: brightness(0.92);
+}
+
+.ch-btn--secondary {
+  background-color: var(--ch-navy);
+  color: var(--ch-white);
+}
+
+.ch-btn--secondary:hover {
+  filter: brightness(1.08);
+}
+
+.ch-btn--outline {
+  background-color: transparent;
+  color: var(--ch-navy);
+  border: 2px solid var(--ch-navy);
+}
+
+.ch-btn--outline:hover {
+  background-color: rgb(3 45 69 / 8%);
+}
+
+/* --------------------------------------------------------------------------
+   Responsive visibility helpers
+   -------------------------------------------------------------------------- */
+@media screen and (max-width: 47.99rem) {
+  .ch-hidden-mobile {
+    display: none !important;
+  }
+}
+
+@media screen and (min-width: 48rem) {
+  .ch-hidden-desktop {
+    display: none !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Footer tiers (Cherify multi-row layout)
+   -------------------------------------------------------------------------- */
+footer .shopify-section .section-background {
+  background-color: var(--ch-footer-bg);
+}
+
+/* Copyright / policies strip below main footer — light bottom inset inside gray band */
+footer .shopify-section.footer-utilities .section {
+  padding-block-end: var(--ch-space-sm);
+  box-sizing: border-box;
+}
+
+/*
+ * Newsletter footer: fill the section column (page-width grid), then cap content.
+ * Avoid justify-items: center on the grid — it shrinks single-column children to
+ * intrinsic width so the subscribe bar never reaches max-width.
+ */
+.ch-footer-tier--newsletter .footer-content {
+  width: 100%;
+  max-width: var(--ch-container-max);
+  min-width: 0;
+  margin-inline: auto;
+  justify-items: stretch;
+  box-sizing: border-box;
+}
+
+.ch-footer-tier--newsletter .footer-content>.group-block {
+  width: 100%;
+  max-width: calc(48rem * 3 / 5);
+  margin-inline: auto;
+}
+
+.ch-footer-tier--newsletter .footer-content>.group-block .group-block-content {
+  width: 100%;
+  align-items: center;
+}
+
+.ch-footer-tier--newsletter .email-signup-block,
+.ch-footer-tier--newsletter .klaviyo-form-WgHSeB {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.ch-footer-tier--newsletter .email-signup__form {
+  width: 100%;
+}
+
+.ch-footer-tier--newsletter h1,
+.ch-footer-tier--newsletter h2,
+.ch-footer-tier--newsletter h3 {
+  text-transform: uppercase;
+  color: var(--ch-navy);
+  font-weight: 700;
+}
+
+.ch-footer-tier--newsletter .email-signup__input-group--integrated {
+  width: 100%;
+  border-color: var(--ch-navy);
+}
+
+.ch-footer-tier--newsletter .email-signup__button--text {
+  background-color: var(--ch-navy);
+  color: var(--ch-white);
+  border-radius: 999px;
+}
+
+.ch-footer-tier--newsletter .email-signup__button--text:hover {
+  filter: brightness(1.08);
+}
+
+/* Main columns footer — small top inset + line under newsletter band (spacing-style sets --padding-block-start inline) */
+.ch-footer-tier--columns .footer-content.spacing-style {
+  --padding-block-start: var(--ch-space-md) !important;
+  border-top: 1px solid var(--color-border);
+}
+
+.ch-footer-tier--columns .menu__heading__default,
+.ch-footer-tier--columns .menu__heading__accordion {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: var(--ch-text-caption);
+}
+
+/* --------------------------------------------------------------------------
+   Customily: quantity selector next to Add to cart
+   Customily injects `.csh-buttons-container-split` (flex row, align-items: end).
+   Theme `.quantity-selector` uses `align-self: stretch` (base.css), so the
+   control stretches to the row cross-size (~124px) and looks broken.
+   -------------------------------------------------------------------------- */
+.customily-buttons-container .quantity-selector-wrapper,
+.csh-button-qty .quantity-selector-wrapper {
+  align-self: center;
+}
+
+.customily-buttons-container .quantity-selector,
+.csh-button-qty .quantity-selector {
+  align-self: center;
+  height: var(--height-buy-buttons);
+  min-height: var(--height-buy-buttons);
+  max-height: var(--height-buy-buttons);
+}
+
+/*
+ * Customily Preview: <button><div class="ld …"></div>Preview</button> + heavy inline style
+ * (display:grid, padding, height, legacy box props). !important only where inline wins cascade.
+ */
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily-preview-button,
+.customily-buttons-container .customily-preview-button {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding-block: 0 !important;
+  height: var(--height-buy-buttons, 52px) !important;
+  position: relative;
+  text-align: center;
+  line-height: 1.25;
+}
+
+/* Customily: preview canvas wrapper (override app default fill) */
+.cl-canvas-container {
+  background: transparent !important;
+}
+
+/* PDP media: Safari double-tap page zoom hits the canvas; manipulation keeps pan/pinch, drops dbl-tap-zoom */
+.product-information__media .cl-canvas-container {
+  touch-action: manipulation;
+}
+
+/* Customily sets this wrapper to the sticky column height; keep the PDP section as tall as the rendered gallery. */
+@media screen and (min-width: 750px) {
+  .product-information__media .cl-sticky-container:has(.customily_gallery) {
+    height: auto !important;
+    position: sticky !important;
+    top: var(--sticky-header-offset, calc(var(--header-height, 0px) + 24px)) !important;
+    z-index: 2;
+  }
+}
+
+/* PDP product details: top padding on mobile (group uses inline --padding-block-start; needs !important) */
+@media screen and (max-width: 749px) {
+  .product-information .product-details>.group-block.spacing-style {
+    --padding-block-start: 4px !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Prices: PDP + quick-add slightly larger + extra-bold; cards stepped up too.
+   Sale/main price: --ch-price-accent (#f36621).
+   -------------------------------------------------------------------------- */
+.product-information .product-details product-price .price,
+.product-information .product-details product-price .price-item--sale {
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: var(--ch-price-accent);
+}
+
+.quick-add-modal .product-details product-price .price,
+.quick-add-modal .product-details product-price .price-item--sale {
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: var(--ch-price-accent);
+}
+
+.product-card product-price .price,
+.product-card product-price .price-item--sale {
+  font-size: var(--ch-text-body);
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+
+.product-information .product-details product-price .compare-at-price,
+.product-card product-price .compare-at-price,
+.quick-add-modal .product-details product-price .compare-at-price {
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+.tabbed-collections__grid .product-card__price {
+  font-size: var(--ch-text-body);
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+
+.tabbed-collections__grid .product-card__compare {
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+/* --------------------------------------------------------------------------
+   Variant picker: semibold (600), slightly larger option titles (Size, Color…).
+   -------------------------------------------------------------------------- */
+variant-picker .variant-option--buttons legend,
+variant-picker .variant-option--dropdowns>label,
+variant-picker .variant-option[data-testid='variant-option-single'] {
+  font-weight: 600;
+  font-size: 1.0625rem;
+  line-height: 1.35;
+}
+
+/* Personalized options: sibling of variant-picker (not inside) so morph does not destroy Customily mount */
+.cherify-variant-picker-stack .variant-picker__personalized {
+  padding: var(--padding-md);
+  box-sizing: border-box;
+  background-color: rgb(var(--color-foreground-rgb) / 6%);
+  border-radius: var(--style-border-radius-inputs);
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized:has(.variant-picker__personalized-mount:empty) {
+  display: none;
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-heading {
+  width: 100%;
+  padding-block-end: var(--padding-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-title {
+  margin: 0;
+  font-family: inherit;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  color: rgb(var(--color-foreground-rgb) / var(--opacity-90));
+}
+
+/* --------------------------------------------------------------------------
+   Customily inside personalized mount: mirror theme variant chips / inputs.
+   Scoped so modals & app-default styling elsewhere stay unchanged.
+   -------------------------------------------------------------------------- */
+.cherify-variant-picker-stack .variant-picker__personalized-mount {
+  --ch-customily-chip-radius: var(--variant-picker-button-radius, 8px);
+  --ch-customily-chip-border: var(--variant-picker-button-border-width, 2px);
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount #customily-options,
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily-options-wrapper {
+  width: 100%;
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily-options-wrapper {
+  padding: 0 !important;
+  background-color: transparent !important;
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount #cl_optionsapp,
+.cherify-variant-picker-stack .variant-picker__personalized-mount .cl-options-background {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily_sets-container,
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily_sets-panel {
+  gap: var(--gap-sm);
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily-set {
+  margin-block-end: var(--margin-sm);
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount #customily-personalize-accordion .customily_option.secret-label-*>label {
+  display: none !important;
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily_option>label {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: rgb(var(--color-foreground-rgb) / var(--opacity-90));
+  margin-block-end: var(--margin-2xs);
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily_option .option_number {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: rgb(var(--color-foreground-rgb) / var(--opacity-60));
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount .cl-option-content,
+.cherify-variant-picker-stack .variant-picker__personalized-mount .cl-accordion.cl-option-content {
+  margin-block-start: var(--margin-2xs);
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily_option .help-text {
+  margin-block-start: var(--margin-2xs);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: rgb(var(--color-foreground-rgb) / var(--opacity-70));
+}
+
+/* Swatch rows: spacing like variant-picker overflow-list */
+.cherify-variant-picker-stack .variant-picker__personalized-mount .swatch {
+  margin: 0;
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily_option .row:has(.swatch) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-xs);
+  align-items: stretch;
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount label.customily-swatch,
+.cherify-variant-picker-stack .variant-picker__personalized-mount .swatch label:not(.swatch-input__label) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: max(2.75rem, var(--minimum-touch-target));
+  padding-block: var(--padding-xs);
+  padding-inline: var(--padding-sm);
+  border: var(--ch-customily-chip-border) solid var(--color-variant-border);
+  border-radius: var(--ch-customily-chip-radius);
+  background-color: var(--color-variant-background);
+  color: var(--color-variant-text);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  line-height: 1.2;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+  cursor: pointer;
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount label.customily-swatch:hover,
+.cherify-variant-picker-stack .variant-picker__personalized-mount .swatch label:not(.swatch-input__label):hover {
+  background-color: var(--color-variant-hover-background);
+  border-color: var(--color-variant-hover-border);
+  color: var(--color-variant-hover-text);
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount .swatch input:checked+label.customily-swatch,
+.cherify-variant-picker-stack .variant-picker__personalized-mount .swatch input:checked+label:not(.swatch-input__label) {
+  background-color: var(--color-selected-variant-background);
+  border-color: var(--color-selected-variant-border);
+  color: var(--color-selected-variant-text);
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount .swatch input:focus-visible+label.customily-swatch,
+.cherify-variant-picker-stack .variant-picker__personalized-mount .swatch input:focus-visible+label:not(.swatch-input__label) {
+  outline: var(--focus-outline-width) solid var(--color-foreground);
+  outline-offset: var(--focus-outline-offset);
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount label.customily-swatch .label-text {
+  color: inherit !important;
+  font-weight: inherit;
+}
+
+/* Image swatches: 8px outer tile (border), 5px inner image/wrapper clip */
+.cherify-variant-picker-stack .variant-picker__personalized-mount label.customily-swatch:not(.text-swatch),
+.cherify-variant-picker-stack .variant-picker__personalized-mount .swatch label:not(.text-swatch):not(.swatch-input__label) {
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  min-height: unset;
+  min-width: var(--variant-picker-swatch-width, 34px);
+  width: var(--variant-picker-swatch-width, 34px);
+  height: var(--variant-picker-swatch-height, 34px);
+  padding: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount label.customily-swatch:not(.text-swatch)>*,
+.cherify-variant-picker-stack .variant-picker__personalized-mount .swatch label:not(.text-swatch):not(.swatch-input__label)>* {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  align-self: stretch;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount label.customily-swatch:not(.text-swatch) img,
+.cherify-variant-picker-stack .variant-picker__personalized-mount .swatch label:not(.text-swatch):not(.swatch-input__label) img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  object-fit: cover;
+  border-radius: 5px;
+  vertical-align: bottom;
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount .swatch input:checked+label.customily-swatch:not(.text-swatch),
+.cherify-variant-picker-stack .variant-picker__personalized-mount .swatch input:checked+label:not(.text-swatch):not(.swatch-input__label) {
+  outline: 2px solid var(--color-selected-variant-border);
+  outline-offset: 2px;
+  border-color: var(--color-selected-variant-border);
+}
+
+/* Text fields + native selects */
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily_option input[type='text'],
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily_option input[type='number'],
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily_option input[type='email'],
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily_option input[type='date'],
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily_option textarea,
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily_option select {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin-block-start: var(--margin-2xs);
+  padding-block: var(--padding-md);
+  padding-inline: var(--padding-lg);
+  font: inherit;
+  color: rgb(var(--color-foreground-rgb) / var(--opacity-90));
+  background-color: var(--color-background);
+  border: var(--style-border-width-inputs) solid var(--color-border);
+  border-radius: var(--style-border-radius-inputs);
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily_option select,
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily_option input[type='date'] {
+  appearance: none;
+  padding-inline-end: calc(var(--padding-lg) + var(--icon-size-2xs));
+  cursor: pointer;
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily_option input:focus-visible,
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily_option textarea:focus-visible,
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily_option select:focus-visible {
+  outline: var(--focus-outline-width) solid var(--color-foreground);
+  outline-offset: var(--focus-outline-offset);
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily_option input:hover,
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily_option textarea:hover,
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily_option select:hover {
+  border-color: var(--color-variant-hover-border);
+}
+
+/* Upload / secondary actions: chip-like outline */
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily-download-button {
+  margin-block-start: var(--margin-2xs);
+  padding-block: var(--padding-sm);
+  padding-inline: var(--padding-lg);
+  border-radius: var(--ch-customily-chip-radius);
+  border: var(--ch-customily-chip-border) solid var(--color-variant-border);
+  background-color: var(--color-variant-background);
+  color: var(--color-variant-text);
+  font-weight: 600;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.cherify-variant-picker-stack .variant-picker__personalized-mount .customily-download-button:hover {
+  background-color: var(--color-variant-hover-background);
+  border-color: var(--color-variant-hover-border);
+  color: var(--color-variant-hover-text);
+}
+
+variant-picker .variant-option__button-label__text,
+variant-picker .variant-option__select,
+variant-picker .variant-option__swatch-value {
+  font-weight: 700;
+}
+
+/* Tighter spacing between options (default: --gap-sm / 1rem overflow-list) */
+variant-picker .variant-option--buttons {
+  gap: var(--gap-xs);
+}
+
+variant-picker .variant-option--swatches overflow-list::part(list) {
+  column-gap: var(--gap-xs);
+}
+
+/* Tighter padding inside text variant chips (swatch labels stay padding: 0 in base.css) */
+variant-picker .variant-option__button-label:not(.variant-option__button-label--has-swatch) {
+  padding-block: var(--padding-xs);
+  padding-inline: var(--padding-sm);
+  min-height: max(2.75rem, var(--minimum-touch-target));
+}
+
+@media screen and (min-width: 750px) {
+  variant-picker .variant-option__button-label:not(.variant-option__button-label--has-swatch) {
+    padding-block: var(--padding-2xs);
+    padding-inline: var(--padding-sm);
+  }
+}
+
+variant-picker .variant-option__select {
+  padding-block: var(--padding-sm);
+  padding-inline: var(--padding-sm) calc(var(--padding-sm) + var(--icon-size-2xs));
+}
+
+variant-picker .variant-option__select-wrapper .icon {
+  right: var(--padding-sm);
+}
+
+/* --------------------------------------------------------------------------
+   Sticky bar: thumbnail opens Customily preview when stuck + preview exists
+   -------------------------------------------------------------------------- */
+.sticky-add-to-cart__bar.cherify-sticky-thumb-preview--active .sticky-add-to-cart__image {
+  cursor: pointer;
+  border-radius: var(--style-border-radius-buttons, 4px);
+  transition: opacity 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sticky-add-to-cart__bar.cherify-sticky-thumb-preview--active .sticky-add-to-cart__image:hover {
+  opacity: 0.92;
+}
+
+.sticky-add-to-cart__bar.cherify-sticky-thumb-preview--active .sticky-add-to-cart__image:focus-visible {
+  outline: 2px solid rgb(var(--color-foreground-rgb) / 50%);
+  outline-offset: 2px;
+}
+
+/* Sticky ATC loading UI mirrors source Customily button state */
+.sticky-add-to-cart__button {
+  position: relative;
+}
+
+.sticky-add-to-cart__button.running,
+.sticky-add-to-cart__button[data-loading='true'] {
+  pointer-events: none;
+}
+
+.sticky-add-to-cart__button.running .add-to-cart-text,
+.sticky-add-to-cart__button[data-loading='true'] .add-to-cart-text {
+  opacity: 0;
+}
+
+.sticky-add-to-cart__button.running::after,
+.sticky-add-to-cart__button[data-loading='true']::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  animation: cherify-sticky-atc-spin 0.7s linear infinite;
+}
+
+@keyframes cherify-sticky-atc-spin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* Main Customily preview active: keep canvas editable, hide gallery controls */
+.product-information__media.cherify-main-preview-active :is(slideshow-controls, slideshow-arrows, .slideshow-controls) {
+  display: none !important;
+}
+
+.product-information__media.cherify-main-preview-active slideshow-slides {
+  overflow: hidden !important;
+}
+
+/* Hide media-gallery when .customily_gallery precedes it as a sibling */
+.customily_gallery~media-gallery {
+  display: none;
+}
+
+/* Desktop: set padding for product-information__media */
+@media screen and (min-width: 750px) {
+  .product-information__media {
+    padding-right: 0 !important;
+    padding-top: 24px !important;
+  }
+
+  .media-gallery--carousel {
+    padding-top: 0 !important;
+  }
+
+  .customily_gallery_image {
+    border-radius: var(--media-radius, 8px);
+  }
+}
+
+/* Mobile: unset min-height for customily_gallery_media */
+@media screen and (max-width: 749px) {
+  .customily_gallery_media {
+    min-height: unset !important;
+  }
+
+  .cl-sticky-container {
+    height: auto !important;
+  }
+}
+
+/* Customily gallery thumbnail: reset browser default focus outline */
+.customily_gallery_thumbnail:focus,
+.customily_gallery_thumbnail:focus-visible {
+  outline: none !important;
+}
+
+/* Customily gallery thumbnail active: match default gallery outline style */
+.customily_gallery_thumbnail.active {
+  outline: 2px solid rgb(255, 133, 90) !important;
+  outline-offset: 2px !important;
+  border-width: 0 !important;
+}
+
+/* Customily gallery thumbnails: hide scrollbar like default gallery (scrollbar-width: none + webkit) */
+.customily_gallery_thumbnails_container {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.customily_gallery_thumbnails_container::-webkit-scrollbar {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   PDP mobile: fixed preview strip over header while scrolling variant zone
+   -------------------------------------------------------------------------- */
+@media screen and (min-width: 750px) {
+  .cherify-mobile-sticky-preview {
+    display: none !important;
+  }
+}
+
+@media screen and (max-width: 749px) {
+  .cherify-mobile-sticky-preview {
+    --ch-preview-chrome-size: 2rem;
+    /* Same inset from edges for close (top/right) and zoom (right/bottom) */
+    --ch-preview-edge-inset: 6px;
+    position: fixed;
+    inset-inline: 0;
+    top: 0;
+    /* Above sticky header (--layer-sticky: 8); portaled to body so this applies globally */
+    z-index: var(--layer-header-menu, 12);
+    padding: 0;
+    background: rgb(var(--color-background-rgb, 255 255 255) / 0.62);
+    backdrop-filter: blur(22px) saturate(1.2);
+    -webkit-backdrop-filter: blur(22px) saturate(1.2);
+    border-bottom: 1px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.08);
+    box-shadow: 0 1px 0 rgb(var(--color-foreground-rgb, 0 0 0) / 0.04);
+    pointer-events: none;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-100%);
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease,
+      visibility 0.2s;
+  }
+
+  .cherify-mobile-sticky-preview.cherify-mobile-sticky-preview--visible {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .cherify-mobile-sticky-preview__close {
+    position: absolute;
+    top: max(var(--ch-preview-edge-inset), env(safe-area-inset-top, 0px));
+    right: max(var(--ch-preview-edge-inset), env(safe-area-inset-right, 0px));
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: var(--ch-preview-chrome-size, 2rem);
+    height: var(--ch-preview-chrome-size, 2rem);
+    min-width: var(--ch-preview-chrome-size, 2rem);
+    min-height: var(--ch-preview-chrome-size, 2rem);
+    margin: 0;
+    padding: 0;
+    color: rgb(var(--color-foreground-rgb, 0 0 0));
+    border: 1px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.14);
+    border-radius: 6px;
+    background: rgb(var(--color-background-rgb, 255 255 255) / 0.78);
+    backdrop-filter: blur(12px) saturate(1.15);
+    -webkit-backdrop-filter: blur(12px) saturate(1.15);
+    box-shadow: 0 1px 4px rgb(var(--color-foreground-rgb, 0 0 0) / 0.1);
+    cursor: pointer;
+  }
+
+  .cherify-mobile-sticky-preview__close .svg-wrapper {
+    display: flex;
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+
+  /* Frame: preview scroll area + zoom overlay (zoom does not consume layout height) */
+  .cherify-mobile-sticky-preview__frame {
+    position: relative;
+    z-index: 0;
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .cherify-mobile-sticky-preview__viewport {
+    width: 100%;
+    height: 260px;
+    max-height: 260px;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    cursor: grab;
+    /* pan only: custom pinch updates canvas scale + scroll anchor (browser pinch-zoom fights JS) */
+    touch-action: pan-x pan-y;
+  }
+
+  .cherify-mobile-sticky-preview__viewport.cherify-mobile-sticky-preview__viewport--pinching {
+    touch-action: none;
+  }
+
+  .cherify-mobile-sticky-preview__viewport::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  .cherify-mobile-sticky-preview__viewport--grabbing {
+    cursor: grabbing;
+    user-select: none;
+  }
+
+  .cherify-mobile-sticky-preview__viewport--grabbing .cherify-mobile-sticky-preview__canvas {
+    cursor: grabbing;
+  }
+
+  .cherify-mobile-sticky-preview__inner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    width: max-content;
+    min-width: 100%;
+    min-height: 100%;
+    margin-inline: auto;
+    padding: 0;
+  }
+
+  .cherify-mobile-sticky-preview__canvas {
+    display: block;
+    flex-shrink: 0;
+    cursor: grab;
+    /* grab / grabbing for pan; double-tap / dblclick still zoom */
+  }
+
+  /* Vertical stack: + top, − bottom; square cells, slight radius, inset from edges */
+  .cherify-mobile-sticky-preview__zoom {
+    --ch-zoom-cell: var(--ch-preview-chrome-size);
+    position: absolute;
+    right: max(var(--ch-preview-edge-inset), env(safe-area-inset-right, 0px));
+    bottom: var(--ch-preview-edge-inset);
+    z-index: 2;
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.14);
+    border-radius: 6px;
+    background: rgb(var(--color-background-rgb, 255 255 255) / 0.78);
+    backdrop-filter: blur(12px) saturate(1.15);
+    -webkit-backdrop-filter: blur(12px) saturate(1.15);
+    box-shadow: 0 1px 4px rgb(var(--color-foreground-rgb, 0 0 0) / 0.1);
+  }
+
+  .cherify-mobile-sticky-preview__zoom-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--ch-zoom-cell);
+    height: var(--ch-zoom-cell);
+    min-width: var(--ch-zoom-cell);
+    min-height: var(--ch-zoom-cell);
+    margin: 0;
+    padding: 0;
+    color: rgb(var(--color-foreground-rgb, 0 0 0));
+    border-radius: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .cherify-mobile-sticky-preview__zoom-btn:first-of-type {
+    border-bottom: 1px solid rgb(var(--color-foreground-rgb, 0 0 0) / 0.12);
+  }
+
+  .cherify-mobile-sticky-preview__zoom-btn:disabled {
+    opacity: 0.35;
+    pointer-events: none;
+    cursor: not-allowed;
+  }
+
+  .cherify-mobile-sticky-preview__zoom-btn .svg-wrapper {
+    display: flex;
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+
+  .cherify-mobile-sticky-preview__zoom-btn .svg-wrapper svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .cherify-mobile-sticky-preview__zoom-btn:active:not(:disabled) {
+    background: rgb(var(--color-foreground-rgb, 0 0 0) / 0.06);
+  }
+}
+
+/* Customily cart preview modal image — prevent horizontal stretching */
+#cart-preview-modal img {
+  width: auto !important;
+}
+
+/* PDP: no dynamic checkout (Shop Pay / PayPal / etc.) */
+.product-information :is(.shopify-payment-button,
+  .accelerated-checkout-block,
+  shopify-accelerated-checkout) {
+  display: none !important;
+}

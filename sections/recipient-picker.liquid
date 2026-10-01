@@ -1,0 +1,157 @@
+
+<div class="section-background color-{{ section.settings.color_scheme }}"></div>
+<div
+  class="section section--{{ section.settings.section_width }} color-{{ section.settings.color_scheme }} recipient-picker spacing-style"
+  style="{% render 'spacing-style', settings: section.settings %}"
+>
+  {%- if section.settings.heading != blank -%}
+    <h3 class="recipient-picker__heading">{{ section.settings.heading | escape }}</h3>
+  {%- endif -%}
+
+  <div class="recipient-picker__pills">
+    {%- for block in section.blocks -%}
+      <a
+        href="{{ block.settings.link | default: '#' }}"
+        class="recipient-picker__pill"
+        {{ block.shopify_attributes }}
+      >
+        {{- block.settings.label | escape -}}
+      </a>
+    {%- endfor -%}
+  </div>
+</div>
+
+{% stylesheet %}
+  .recipient-picker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .recipient-picker__heading {
+    margin: 0;
+    text-align: center;
+    font-weight: 700;
+  }
+
+  .recipient-picker__pills {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .recipient-picker__pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 20px;
+    border: 1.5px solid currentColor;
+    border-radius: 100px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.4;
+    text-decoration: none;
+    color: inherit;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .recipient-picker__pill:hover {
+    background-color: var(--color-foreground);
+    color: var(--color-background);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:names.recipient_picker",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "blocks": [
+    {
+      "type": "pill",
+      "name": "t:names.pill",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "t:settings.label",
+          "default": "Shop"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "t:settings.link"
+        }
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:settings.heading",
+      "default": "Who Are You Shopping For Today?"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:settings.section_width",
+      "options": [
+        { "value": "page-width", "label": "t:options.page" },
+        { "value": "full-width", "label": "t:options.full" }
+      ],
+      "default": "page-width"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 32
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.recipient_picker",
+      "category": "t:categories.collections",
+      "blocks": [
+        { "type": "pill", "settings": { "label": "Mom" } },
+        { "type": "pill", "settings": { "label": "Kid & Baby" } },
+        { "type": "pill", "settings": { "label": "For Her" } },
+        { "type": "pill", "settings": { "label": "For Him" } },
+        { "type": "pill", "settings": { "label": "Couple" } },
+        { "type": "pill", "settings": { "label": "Friends" } },
+        { "type": "pill", "settings": { "label": "Family" } },
+        { "type": "pill", "settings": { "label": "Pet Lovers" } },
+        { "type": "pill", "settings": { "label": "Coworkers" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

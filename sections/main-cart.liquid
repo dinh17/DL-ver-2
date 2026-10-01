@@ -1,0 +1,317 @@
+  {%- liquid
+    if settings.currency_code_enabled_cart_total
+      assign total_price = cart.total_price | money_with_currency
+    else
+      assign total_price = cart.total_price | money
+    endif
+  -%}
+
+{% capture cart_page_more_blocks_content %}
+  <div class="cart-page__more-blocks">
+    {%- content_for 'blocks' -%}
+  </div>
+{% endcapture %}
+
+{% capture cart_items_children %}
+  <template id="empty-cart-template">
+    <div class="section-background color-{{ section.settings.color_scheme }}"></div>
+    <div
+      class="section color-{{ section.settings.color_scheme }} section--{{ section.settings.section_width }}"
+    >
+      <div
+        class="cart-page spacing-style{% if cart.empty? %} cart-page--empty{% endif %}"
+        style="{% render 'spacing-style', settings: section.settings %}"
+      >
+        <div class="cart-page__title">
+          {%- content_for 'block', id: 'cart-page-title', type: '_cart-title', force_empty: true %}
+        </div>
+        <div class="cart-page__items">
+          {%- content_for 'block', id: 'cart-page-items', type: '_cart-products', force_empty: true %}
+        </div>
+        {{ cart_page_more_blocks_content }}
+      </div>
+    </div>
+  </template>
+
+  {% # theme-check-disable UniqueStaticBlockId %}
+  <div class="section-background color-{{ section.settings.color_scheme }}"></div>
+  <div
+    class="section color-{{ section.settings.color_scheme }} section--{{ section.settings.section_width }}"
+  >
+    <div
+      class="cart-page spacing-style{% if cart.empty? %} cart-page--empty{% endif %}"
+      style="{% render 'spacing-style', settings: section.settings %}"
+    >
+      <div class="cart-page__title">
+        {%- content_for 'block', id: 'cart-page-title', type: '_cart-title' %}
+      </div>
+
+      {%- unless cart.empty? -%}
+        {% render 'cart-countdown' %}
+      {%- endunless -%}
+
+      <div class="cart-page__items">
+        {%- content_for 'block', id: 'cart-page-items', type: '_cart-products' %}
+      </div>
+
+      {%- unless cart.empty? -%}
+        <div class="cart-page__summary">
+          {%- content_for 'block', id: 'cart-page-summary', type: '_cart-summary' -%}
+        </div>
+      {%- endunless -%}
+
+      {{ cart_page_more_blocks_content }}
+    </div>
+  </div>
+  {% # theme-check-enable UniqueStaticBlockId %}
+{% endcapture %}
+{% render 'cart-items-component', children: cart_items_children, section_id: section.id %}
+
+{%- unless cart.empty? -%}
+  <div class="cart__ctas-sticky-mobile-wrapper">
+    <button
+      type="submit"
+      id="checkout-sticky"
+      class="cart__checkout-button button"
+      name="checkout"
+      form="cart-form"
+    >
+      <span class="button-text">
+        <span class="svg-wrapper cart__checkout-lock-icon">
+          <svg
+            aria-hidden="true"
+            focusable="false"
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 20 20"
+          >
+            {%- render 'icon', icon: 'lock' -%}
+          </svg>
+        </span>
+        {{ 'content.checkout' | t }}
+        <span class="cart__checkout-total-sticky">
+          <span class="cart__checkout-total-separator" aria-hidden="true">•</span>
+          {{ total_price }}
+        </span>
+      </span>
+    </button>
+  </div>
+{%- endunless -%}
+
+{% stylesheet %}
+  .cart-page {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0 var(--padding-5xl);
+  }
+
+  .cart-page--empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cart-page--empty .cart-page__title,
+  .cart-page--empty .cart-page__more-blocks {
+    margin-top: var(--margin-6xl);
+  }
+
+  .cart-page__more-blocks {
+    width: 100%;
+  }
+
+  .cart-page--empty .cart-title {
+    text-align: center;
+  }
+
+  .cart-page__main {
+    grid-column: 1;
+  }
+
+  .cart-page__summary {
+    padding-top: var(--padding-xl);
+  }
+
+  .cart-page__title {
+    margin-block-end: var(--margin-md);
+  }
+
+  .cart-page__title + .cart-page__items {
+    margin-block-start: var(--margin-lg);
+  }
+
+  @media screen and (min-width: 750px) {
+    .cart-page {
+      grid-template-columns: 1fr min(50vw, var(--sidebar-width));
+      grid-template-rows: min-content min-content 1fr;
+    }
+
+    .cart-page__summary {
+      display: grid;
+      height: 100%;
+      grid-column: 2;
+      grid-row: 1 / -1;
+      align-self: stretch;
+      grid-template-rows: subgrid;
+      padding-top: 0;
+
+      /* needed to support blurred effect from hero section */
+      position: relative;
+    }
+
+    .section--page-width .cart-page:has(.cart-summary--extend) {
+      grid-column: 2 / 4;
+      grid-template-columns: 1fr minmax(
+          var(--sidebar-width),
+          calc((100vw - var(--page-width)) / 2 + var(--sidebar-width))
+        );
+    }
+  }
+
+  @media screen and (min-width: 1400px) {
+    .cart-page {
+      grid-template-columns: 1fr var(--sidebar-width);
+    }
+  }
+
+  .cart__ctas-sticky-mobile-wrapper {
+    display: none;
+  }
+
+  @media screen and (max-width: 749px) {
+    .cart__ctas-sticky-mobile-wrapper {
+      display: block;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      z-index: 100;
+      padding: var(--padding-md);
+      background: rgb(var(--color-background-rgb) / 0.8);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+      border-top: 1px solid var(--color-border);
+    }
+
+    .cart__ctas-sticky-mobile-wrapper .cart__checkout-button {
+      width: 100%;
+      height: clamp(44px, var(--height-buy-buttons), 55px);
+      padding-inline: var(--padding-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--gap-xs);
+      font-size: var(--font-size--md);
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    .cart__checkout-total-sticky {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--gap-xs);
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .cart__checkout-lock-icon {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 2px;
+    }
+
+    .cart__checkout-lock-icon svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:names.cart",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "blocks": [
+    {
+      "type": "@theme"
+    },
+    {
+      "type": "@app"
+    },
+    {
+      "type": "text"
+    },
+    {
+      "type": "icon"
+    },
+    {
+      "type": "image"
+    },
+    {
+      "type": "button"
+    },
+    {
+      "type": "video"
+    },
+    {
+      "type": "group"
+    },
+    {
+      "type": "spacer"
+    }
+  ],
+  "settings": [
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:settings.width",
+      "options": [
+        {
+          "value": "page-width",
+          "label": "t:options.page"
+        },
+        {
+          "value": "full-width",
+          "label": "t:options.full"
+        }
+      ],
+      "default": "page-width"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ]
+}
+{% endschema %}

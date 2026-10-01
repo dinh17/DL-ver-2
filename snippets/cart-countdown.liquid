@@ -1,0 +1,80 @@
+<div class="cart-countdown" id="CartCountdown">
+  <div class="cart-countdown__content">
+    <span class="cart-countdown__text">
+      Your cart will expire in <span class="cart-countdown__timer" id="CartCountdownTimer">10:00</span> minutes ! Checkout now before your items sell out 🔥
+    </span>
+  </div>
+</div>
+
+<style>
+  .cart-countdown {
+    background-color: #fdf2f2;
+    border-radius: 12px;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    width: 100%;
+    display: block;
+    box-sizing: border-box;
+  }
+
+  .cart-countdown__text {
+    font-size: 15px;
+    color: #202020;
+    line-height: 1.2;
+    display: inline-block;
+  }
+
+  .cart-countdown__timer {
+    color: #eb4f47; /* Red color for timer */
+    font-weight: 700;
+  }
+
+  @media screen and (max-width: 749px) {
+    .cart-countdown {
+      padding: 10px 16px;
+      margin-bottom: 16px;
+    }
+    .cart-countdown__text {
+      font-size: 14px;
+    }
+  }
+</style>
+
+<script>
+  (function() {
+    const initTimer = () => {
+      const timerElement = document.getElementById('CartCountdownTimer');
+      if (!timerElement) return;
+
+      let totalSeconds = 10 * 60; // 10 minutes
+
+      const updateTimer = () => {
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        
+        timerElement.textContent = 
+          String(minutes).padStart(2, '0') + ':' + 
+          String(seconds).padStart(2, '0');
+        
+        if (totalSeconds > 0) {
+          totalSeconds--;
+        } else {
+          clearInterval(timerInterval);
+        }
+      };
+
+      updateTimer();
+      const timerInterval = setInterval(updateTimer, 1000);
+    };
+
+    // Re-init on Shopify's Section Load (useful for theme editor)
+    document.addEventListener('shopify:section:load', (event) => {
+      if (event.target.querySelector('#CartCountdown')) {
+        initTimer();
+      }
+    });
+
+    // Initial init
+    initTimer();
+  })();
+</script>

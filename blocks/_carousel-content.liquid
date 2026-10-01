@@ -1,0 +1,337 @@
+
+
+{% liquid
+  assign slide_count = block.blocks.size
+  assign icons_style = section.settings.icons_style
+
+  assign color_scheme_class = ''
+  if block.settings.inherit_color_scheme == false
+    assign color_scheme_class = 'color-' | append: block.settings.color_scheme
+  endif
+
+  assign slideshow_gutters = null
+
+  assign show_arrows = false
+  if icons_style != 'none'
+    assign show_arrows = true
+  endif
+
+  assign slide_position = block.settings.position
+  if block.settings.height == 'fill'
+    assign slide_position = 'stretch'
+  endif
+-%}
+
+{% capture blocks_content %}
+  {% content_for 'blocks' %}
+{% endcapture %}
+
+{% capture slideshow_style %}
+  --carousel-columns: {{ section.settings.columns }};
+  --carousel-mobile-columns: {{ section.settings.mobile_columns }};
+  {% render 'gap-style', value: section.settings.columns_gap, name: 'carousel-gap' %}
+  {% render 'spacing-style', settings: block.settings %}
+  {% render 'border-override', settings: block.settings %}
+{% endcapture %}
+
+{% assign slideshow_class = 'carousel-content spacing-style ' | append: color_scheme_class %}
+<div style="overflow: hidden;">
+  {% render 'slideshow',
+    class: slideshow_class,
+    style: slideshow_style,
+    slides: blocks_content,
+    show_arrows: show_arrows,
+    icon_style: icons_style,
+    icon_shape: section.settings.icons_shape,
+    auto_hide_controls: true,
+    infinite: false,
+    initial_slide: 0,
+    slide_count: slide_count,
+    slide_position: slide_position,
+    slideshow_gutters: slideshow_gutters,
+    attributes: block.shopify_attributes
+  %}
+</div>
+
+{% stylesheet %}
+  .carousel-content {
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    container-type: inline-size;
+
+    --carousel-list-inline-padding: 10px;
+    --carousel-slide-slot-width: calc(
+      (
+          100cqw - (var(--carousel-list-inline-padding) * 2) -
+            (var(--carousel-gap, 8px) * (var(--carousel-mobile-columns, 2) - 1))
+        ) / var(--carousel-mobile-columns, 2)
+    );
+
+    slideshow-slides {
+      align-items: flex-start;
+    }
+  }
+
+  .carousel-content slideshow-slides {
+    --slideshow-gap: var(--carousel-gap);
+    --carousel-list-inline-padding: 10px;
+
+    padding-inline: var(--carousel-list-inline-padding);
+    scroll-padding-inline: var(--carousel-list-inline-padding);
+  }
+
+  .carousel-content slideshow-slides > .card {
+    flex: 0 0 auto;
+    width: var(--carousel-slide-slot-width);
+  }
+
+  @media screen and (min-width: 750px) {
+    .carousel-content {
+      --carousel-slide-slot-width: calc(
+        (
+            100cqw - (var(--carousel-list-inline-padding) * 2) -
+              (var(--carousel-gap, 8px) * (var(--carousel-columns, 4) - 1))
+          ) / var(--carousel-columns, 4)
+      );
+    }
+  }
+
+  /*
+    Arrows sync with collection-links carousel:
+    always visible, primary circle buttons, disabled = faded, grid keeps positions stable.
+    Overlay height = square image slot (not full card + label).
+  */
+  .carousel-content slideshow-arrows {
+    --slideshow-controls-icon: 1.125rem;
+
+    inset: 0 auto auto 0;
+    width: 100%;
+    height: var(--carousel-slide-slot-width);
+    padding-inline: 0;
+    mix-blend-mode: normal;
+  }
+
+  .carousel-content slideshow-arrows .slideshow-control {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background-color: var(--color-primary-button-background, var(--color-primary));
+    color: var(--color-primary-button-text, #fff);
+    opacity: 1;
+    animation: none !important;
+    transform: none;
+    min-height: 2.25rem;
+    min-width: 2.25rem;
+    padding: 0 var(--padding-3xs);
+  }
+
+  .carousel-content slideshow-arrows .slideshow-control .svg-wrapper,
+  .carousel-content slideshow-arrows .slideshow-control .svg-wrapper svg {
+    width: var(--slideshow-controls-icon);
+    height: var(--slideshow-controls-icon);
+  }
+
+  .carousel-content slideshow-arrows .slideshow-control .icon-caret {
+    rotate: -90deg;
+  }
+
+  @media (hover: hover) {
+    .carousel-content slideshow-arrows .slideshow-control:not([disabled]):hover {
+      background-color: var(--color-primary-button-hover-background, var(--color-primary-hover));
+      color: var(--color-primary-button-hover-text, var(--color-primary-button-text, #fff));
+    }
+  }
+
+  .carousel-content .slideshow-control[disabled] {
+    opacity: var(--opacity-40);
+    cursor: not-allowed;
+  }
+
+  .carousel-content slideshow-arrows[position='center'] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    align-content: center;
+    justify-content: unset;
+    mix-blend-mode: normal;
+  }
+
+  .carousel-content slideshow-arrows .slideshow-control--previous {
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  .carousel-content slideshow-arrows .slideshow-control--next {
+    grid-column: 3;
+    justify-self: end;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:names.carousel_content",
+  "blocks": [
+    {
+      "type": "_card"
+    }
+  ],
+  "tag": null,
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "inherit_color_scheme",
+      "label": "t:settings.inherit_color_scheme",
+      "default": true
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1",
+      "visible_if": "{{ block.settings.inherit_color_scheme == false }}"
+    },
+    {
+      "type": "select",
+      "id": "height",
+      "label": "t:settings.card_height",
+      "options": [
+        {
+          "value": "fit",
+          "label": "t:options.fit_content"
+        },
+        {
+          "value": "fill",
+          "label": "t:options.fill"
+        }
+      ],
+      "default": "fit"
+    },
+    {
+      "type": "select",
+      "id": "position",
+      "label": "t:settings.position",
+      "options": [
+        {
+          "value": "top",
+          "label": "t:options.top"
+        },
+        {
+          "value": "center",
+          "label": "t:options.center"
+        },
+        {
+          "value": "bottom",
+          "label": "t:options.bottom"
+        }
+      ],
+      "visible_if": "{{ block.settings.height == \"fit\" }}",
+      "default": "top"
+    },
+    {
+      "type": "header",
+      "content": "t:content.borders"
+    },
+    {
+      "type": "select",
+      "id": "border",
+      "label": "t:settings.style",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:options.none"
+        },
+        {
+          "value": "solid",
+          "label": "t:options.solid"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "range",
+      "id": "border_width",
+      "min": 0,
+      "max": 4,
+      "step": 1,
+      "unit": "px",
+      "label": "t:settings.thickness",
+      "default": 1,
+      "visible_if": "{{ block.settings.border != 'none' }}"
+    },
+    {
+      "type": "range",
+      "id": "border_opacity",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "t:settings.opacity",
+      "default": 100,
+      "visible_if": "{{ block.settings.border != 'none' }}"
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "label": "t:settings.border_radius",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-start",
+      "label": "t:settings.left",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-end",
+      "label": "t:settings.right",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.carousel_content",
+      "category": "t:categories.layout"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,97 @@
+<script src="{{ 'pdp-estimated-delivery.js' | asset_url }}" defer="defer"></script>
+
+{% render 'pdp-estimated-delivery', block: block %}
+
+{% schema %}
+{
+  "name": "t:names.pdp_estimated_delivery",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "t:content.pdp_estimated_delivery_help"
+    },
+    {
+      "type": "range",
+      "id": "min_days",
+      "label": "t:settings.pdp_estimated_delivery_min_days",
+      "min": 1,
+      "max": 45,
+      "step": 1,
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "max_days",
+      "label": "t:settings.pdp_estimated_delivery_max_days",
+      "min": 1,
+      "max": 60,
+      "step": 1,
+      "default": 14
+    },
+    {
+      "type": "checkbox",
+      "id": "show_emoji",
+      "label": "t:settings.pdp_estimated_delivery_show_emoji",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "prefix",
+      "label": "t:settings.pdp_estimated_delivery_prefix",
+      "info": "t:info.pdp_estimated_delivery_prefix",
+      "default": "Order today and get it by "
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-start",
+      "label": "t:settings.left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-end",
+      "label": "t:settings.right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.pdp_estimated_delivery",
+      "category": "t:categories.product"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,447 @@
+
+{% liquid
+  assign ch_footer_tier = section.settings.cherify_footer_variant
+  assign ch_footer_classes = ''
+  if ch_footer_tier == 'newsletter'
+    assign ch_footer_classes = ' ch-footer-tier ch-footer-tier--newsletter'
+  elsif ch_footer_tier == 'columns'
+    assign ch_footer_classes = ' ch-footer-tier ch-footer-tier--columns'
+  endif
+%}
+<div class="section-background color-{{ section.settings.color_scheme }}{{ ch_footer_classes }}"></div>
+<div
+  class="section section--{{ section.settings.section_width }} color-{{ section.settings.color_scheme }}{{ ch_footer_classes }}"
+>
+  {% liquid
+    assign total_blocks = section.blocks.size
+
+    # Grid layout calculations
+    assign grid_columns = total_blocks | at_most: 4
+
+    # Calculate last row counts using modulo arithmetic
+    # last_row_count = (total_blocks - 1) % N + 1
+    assign last_row_count = total_blocks | minus: 1 | modulo: 4 | plus: 1
+    assign tablet_last_row_count = total_blocks | minus: 1 | modulo: 2 | plus: 1
+
+    # Check if there are orphaned elements (single item in last row)
+    assign has_isolated_grid_item_desktop = false
+    assign has_isolated_grid_item_tablet = false
+
+    if total_blocks > 4 and last_row_count == 1
+      assign has_isolated_grid_item_desktop = true
+    endif
+
+    if total_blocks == 5
+      assign has_isolated_grid_item_tablet = true
+    endif
+  %}
+  <div
+    class="
+      footer-content
+      spacing-style
+      {% if has_isolated_grid_item_desktop %}footer-content--isolated-grid-item-desktop{% endif %}
+      {% if has_isolated_grid_item_tablet %}footer-content--isolated-grid-item-tablet{% endif %}
+    "
+    style="
+      {%  render 'spacing-style', settings: section.settings %}
+      --footer-gap: {{ section.settings.gap }}px;
+      --grid-columns: {{ grid_columns }};
+      --last-row-count: {{ last_row_count }};
+      --tablet-last-row-count: {{ tablet_last_row_count }};
+    "
+  >
+    {% content_for 'blocks' %}
+  </div>
+</div>
+
+{% stylesheet %}
+  .footer-content {
+    contain: content;
+    content-visibility: auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--footer-gap);
+    align-items: start;
+  }
+
+  .footer-content .menu__heading__default {
+    font-weight: var(--font-heading--weight);
+  }
+
+  @media screen and (min-width: 750px) and (max-width: 989px) {
+    .footer-content {
+      grid-template-columns: repeat(min(var(--grid-columns), 3), 1fr);
+      grid-auto-flow: row;
+    }
+
+    .footer-content[style*='--grid-columns: 4'] {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .footer-content--isolated-grid-item-tablet > :last-child {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media screen and (min-width: 990px) {
+    .footer-content {
+      grid-template-columns: repeat(var(--grid-columns), 1fr);
+    }
+
+    /* Single item centered */
+    .footer-content[style*='--grid-columns: 1'] {
+      justify-items: center;
+    }
+
+    .footer-content--isolated-grid-item-desktop > :last-child {
+      grid-column: 1 / -1;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:names.footer",
+  "class": "section-wrapper",
+  "blocks": [
+    {
+      "type": "_divider"
+    },
+    {
+      "type": "@app"
+    },
+    {
+      "type": "button"
+    },
+    {
+      "type": "follow-on-shop"
+    },
+    {
+      "type": "group"
+    },
+    {
+      "type": "icon"
+    },
+    {
+      "type": "image"
+    },
+    {
+      "type": "menu"
+    },
+    {
+      "type": "payment-icons"
+    },
+    {
+      "type": "text"
+    },
+    {
+      "type": "logo"
+    },
+    {
+      "type": "jumbo-text"
+    },
+    {
+      "type": "social-links"
+    },
+    {
+      "type": "email-signup"
+    },
+    {
+      "type": "custom-liquid"
+    }
+  ],
+  "enabled_on": {
+    "groups": ["footer"]
+  },
+  "settings": [
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:settings.width",
+      "options": [
+        {
+          "value": "page-width",
+          "label": "t:options.page"
+        },
+        {
+          "value": "full-width",
+          "label": "t:options.full"
+        }
+      ],
+      "default": "page-width"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "t:settings.gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "cherify_footer_variant",
+      "label": "t:settings.cherify_footer_variant",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:options.default"
+        },
+        {
+          "value": "newsletter",
+          "label": "t:options.cherify_footer_newsletter"
+        },
+        {
+          "value": "columns",
+          "label": "t:options.cherify_footer_columns"
+        }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 20
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.footer",
+      "category": "t:categories.footer",
+      "settings": {
+        "gap": 20,
+        "color_scheme": "scheme-1",
+        "padding-block-start": 36,
+        "padding-block-end": 36
+      },
+      "blocks": {
+        "newsletter-group": {
+          "type": "group",
+          "settings": {
+            "content_direction": "column",
+            "vertical_on_mobile": true,
+            "horizontal_alignment": "flex-start",
+            "vertical_alignment": "center",
+            "gap": 6,
+            "width": "fill",
+            "inherit_color_scheme": true
+          },
+          "blocks": {
+            "newsletter-heading": {
+              "type": "text",
+              "settings": {
+                "text": "t:html_defaults.join_our_email_list",
+                "width": "100%",
+                "alignment": "left",
+                "type_preset": "h3"
+              }
+            },
+            "newsletter-text": {
+              "type": "text",
+              "settings": {
+                "text": "t:html_defaults.get_exclusive_deals_and_early_access_to_new_products",
+                "width": "100%",
+                "alignment": "left",
+                "type_preset": "rte"
+              }
+            }
+          },
+          "block_order": ["newsletter-heading", "newsletter-text"]
+        },
+        "newsletter-form": {
+          "type": "email-signup",
+          "settings": {
+            "width": "fill"
+          }
+        }
+      },
+      "block_order": ["newsletter-group", "newsletter-form"]
+    },
+    {
+      "name": "t:names.cherify_footer_newsletter",
+      "category": "t:categories.footer",
+      "settings": {
+        "gap": 16,
+        "color_scheme": "scheme-1",
+        "padding-block-start": 40,
+        "padding-block-end": 40,
+        "cherify_footer_variant": "newsletter"
+      },
+      "blocks": {
+        "cherify_nl_group": {
+          "type": "group",
+          "settings": {
+            "content_direction": "column",
+            "vertical_on_mobile": true,
+            "horizontal_alignment_flex_direction_column": "center",
+            "vertical_alignment_flex_direction_column": "center",
+            "gap": 12,
+            "width": "fill",
+            "inherit_color_scheme": true
+          },
+          "blocks": {
+            "cherify_nl_h": {
+              "type": "text",
+              "settings": {
+                "text": "t:html_defaults.cherify_footer_newsletter_heading",
+                "width": "100%",
+                "alignment": "center",
+                "type_preset": "h3"
+              }
+            },
+            "cherify_nl_sub": {
+              "type": "text",
+              "settings": {
+                "text": "t:html_defaults.cherify_footer_newsletter_sub",
+                "width": "100%",
+                "alignment": "center",
+                "type_preset": "rte"
+              }
+            },
+            "cherify_nl_form": {
+              "type": "custom-liquid",
+              "settings": {
+                "custom_liquid": "<div class=\"klaviyo-form-WgHSeB\"></div>"
+              }
+            }
+          },
+          "block_order": ["cherify_nl_h", "cherify_nl_sub", "cherify_nl_form"]
+        }
+      },
+      "block_order": ["cherify_nl_group"]
+    },
+    {
+      "name": "t:names.cherify_footer_columns",
+      "category": "t:categories.footer",
+      "settings": {
+        "gap": 32,
+        "color_scheme": "scheme-1",
+        "padding-block-start": 48,
+        "padding-block-end": 32,
+        "cherify_footer_variant": "columns"
+      },
+      "blocks": {
+        "cherify_col_brand": {
+          "type": "group",
+          "settings": {
+            "content_direction": "column",
+            "vertical_on_mobile": true,
+            "horizontal_alignment_flex_direction_column": "flex-start",
+            "vertical_alignment_flex_direction_column": "flex-start",
+            "gap": 12,
+            "width": "fill",
+            "inherit_color_scheme": true
+          },
+          "blocks": {
+            "cherify_brand_title": {
+              "type": "text",
+              "settings": {
+                "text": "t:html_defaults.cherify_footer_brand_title",
+                "width": "100%",
+                "alignment": "left",
+                "type_preset": "h4"
+              }
+            },
+            "cherify_brand_body": {
+              "type": "text",
+              "settings": {
+                "text": "t:html_defaults.cherify_footer_brand_body",
+                "width": "100%",
+                "alignment": "left",
+                "type_preset": "rte"
+              }
+            },
+            "cherify_brand_social_label": {
+              "type": "text",
+              "settings": {
+                "text": "t:html_defaults.cherify_footer_social_label",
+                "width": "100%",
+                "alignment": "left",
+                "type_preset": "paragraph"
+              }
+            },
+            "cherify_brand_social": {
+              "type": "social-links",
+              "settings": {
+                "facebook_url": "https://www.facebook.com/",
+                "instagram_url": "https://www.instagram.com/",
+                "youtube_url": "https://www.youtube.com/",
+                "tiktok_url": "https://www.tiktok.com/",
+                "pinterest_url": "https://www.pinterest.com/",
+                "twitter_url": "https://x.com/"
+              }
+            }
+          },
+          "block_order": [
+            "cherify_brand_title",
+            "cherify_brand_body",
+            "cherify_brand_social_label",
+            "cherify_brand_social"
+          ]
+        },
+        "cherify_menu_cs": {
+          "type": "menu",
+          "settings": {
+            "menu": "main-menu",
+            "heading": "CUSTOMER SERVICE",
+            "heading_preset": "h6",
+            "link_preset": "paragraph",
+            "menu_spacing": 10,
+            "show_as_accordion": true
+          }
+        },
+        "cherify_menu_legal": {
+          "type": "menu",
+          "settings": {
+            "menu": "main-menu",
+            "heading": "LEGAL & POLICIES",
+            "heading_preset": "h6",
+            "link_preset": "paragraph",
+            "menu_spacing": 10,
+            "show_as_accordion": true
+          }
+        },
+        "cherify_menu_help": {
+          "type": "menu",
+          "settings": {
+            "menu": "main-menu",
+            "heading": "HELP & CONNECT",
+            "heading_preset": "h6",
+            "link_preset": "paragraph",
+            "menu_spacing": 10,
+            "show_as_accordion": true
+          }
+        }
+      },
+      "block_order": ["cherify_col_brand", "cherify_menu_cs", "cherify_menu_legal", "cherify_menu_help"]
+    }
+  ]
+}
+{% endschema %}

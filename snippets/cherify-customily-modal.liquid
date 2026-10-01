@@ -1,0 +1,822 @@
+{% comment %}
+  Customily "Edit Photo" dialog (almagems customily-modal pattern).
+  Moves .customily_gallery_media or .cl-canvas-container into <dialog>.
+  Debug: in console run window.cherifyCustomilyModal.setDebug(true) then reload, or call window.cherifyCustomilyModal.openEditor() after upload.
+{% endcomment %}
+<style>
+  dialog#cherify-customily-native-dialog {
+    padding: 0 !important;
+    background: white !important;
+    border-radius: 12px !important;
+    border: none !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
+    width: 95vw !important;
+    max-width: 600px !important;
+    max-height: 90vh !important;
+    margin: auto !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  dialog#cherify-customily-native-dialog:not([open]) {
+    display: none !important;
+  }
+
+  /* Sit above header, sticky ATC, and theme stacking contexts (desktop + mobile). */
+  dialog#cherify-customily-native-dialog[open] {
+    z-index: 100000 !important;
+  }
+
+  dialog#cherify-customily-native-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.75) !important;
+    backdrop-filter: blur(3px);
+  }
+
+  .cherify-customily-dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e5e5;
+    position: relative;
+    background: #fff;
+    flex-shrink: 0;
+  }
+
+  .cherify-customily-dialog-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    flex: 1;
+    color: #000;
+    font-family: inherit;
+    line-height: 1.2;
+  }
+
+  #cherify-customily-dialog-x-btn {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    position: absolute;
+    right: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+  }
+
+  #cherify-customily-dialog-x-btn:hover {
+    background: #f8f8f8;
+    border-color: #d1d1d1;
+  }
+
+  .cherify-customily-dialog-body {
+    position: relative;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+    background: #fff;
+  }
+
+  .cherify-customily-dialog-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-top: 1px solid #e5e5e5;
+    background: #fff;
+    flex-shrink: 0;
+  }
+
+  #cherify-customily-dialog-cancel-btn {
+    background: #fff;
+    color: #000;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  #cherify-customily-dialog-cancel-btn:hover {
+    background: #f8f8f8;
+  }
+
+  #cherify-customily-dialog-apply-btn {
+    background-color: #000;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 32px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: inherit;
+    margin-left: auto;
+  }
+
+  #cherify-customily-dialog-apply-btn:hover {
+    background-color: #333;
+  }
+
+  /* Unified script: canvas is sibling of slider inside .customily_gallery_media */
+  dialog#cherify-customily-native-dialog .customily_gallery_media {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    min-height: 240px !important;
+  }
+
+  dialog#cherify-customily-native-dialog .customily_gallery_slide {
+    transform: none !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  dialog#cherify-customily-native-dialog .customily_gallery_slide > img,
+  dialog#cherify-customily-native-dialog .customily_gallery_image {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: auto !important;
+    max-width: 100% !important;
+    object-fit: contain !important;
+  }
+
+  .cherify-customily-dialog-body > .customily_gallery_slide > img {
+    display: none !important;
+  }
+
+  dialog#cherify-customily-native-dialog .customily-zoom-btn {
+    display: none !important;
+  }
+
+  /*
+   * Desktop Customily often keeps preview hidden in-gallery (display:none / .op-zero / height:0)
+   * until layout activates; inside the dialog we must show the Fabric canvas or the body looks empty.
+   */
+  dialog#cherify-customily-native-dialog .cl-canvas-container {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    inset: auto !important;
+    z-index: 2 !important;
+    pointer-events: auto !important;
+  }
+
+  dialog#cherify-customily-native-dialog .cl-canvas-container .canvas-container,
+  dialog#cherify-customily-native-dialog .canvas-container {
+    opacity: 1 !important;
+    min-height: 120px !important;
+    height: auto !important;
+  }
+
+  dialog#cherify-customily-native-dialog .canvas-container.op-zero,
+  dialog#cherify-customily-native-dialog .op-zero {
+    opacity: 1 !important;
+  }
+
+  dialog#cherify-customily-native-dialog .cl-canvas-container .lower-canvas,
+  dialog#cherify-customily-native-dialog .cl-canvas-container .upper-canvas {
+    visibility: visible !important;
+  }
+
+  #cherify-customily-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.3s ease-in-out;
+  }
+
+  #cherify-customily-temp-preview {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: calc(100% - 40px);
+    height: calc(100% - 40px);
+    object-fit: contain;
+    opacity: 0.3;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .cherify-customily-spinner-container {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 16px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  .cherify-customily-spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid #e5e5e5;
+    border-top: 3px solid #000;
+    border-radius: 50%;
+    animation: cherify-customily-spin 1s linear infinite;
+    margin-bottom: 8px;
+  }
+
+  @keyframes cherify-customily-spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  /*
+   * Customily upload row: smaller controls, Cherify palette (--ch-* from cherify.css).
+   * Scoped to PDP product-information so theme scheme colors stay consistent.
+   */
+  [data-testid='product-information'] .cl-flex-no-wrap {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    align-items: center !important;
+    margin-top: 8px !important;
+    justify-content: flex-start !important;
+  }
+
+  [data-testid='product-information'] .cl-flex-no-wrap .btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: var(--variant-picker-button-radius, var(--ch-radius, 8px)) !important;
+    padding: 5px 12px !important;
+    font-size: 13px !important;
+    line-height: 1.25 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    min-width: 0 !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
+    margin: 0 !important;
+    text-transform: none !important;
+    box-shadow: none !important;
+    flex: none !important;
+    font-family: var(--font-body--family, var(--ch-font-body)) !important;
+  }
+
+  [data-testid='product-information'] .cl-flex-no-wrap .btn span,
+  [data-testid='product-information'] .cl-flex-no-wrap .btn div {
+    font-size: 13px !important;
+    font-weight: inherit !important;
+    line-height: 1.25 !important;
+  }
+
+  [data-testid='product-information'] .cl-flex-no-wrap .customily-edit-btn,
+  [data-testid='product-information'] .cl-flex-no-wrap .customily-download-button {
+    background: var(--ch-price-accent, #f36621) !important;
+    color: var(--ch-white, #fff) !important;
+    border: 1px solid var(--ch-price-accent, #f36621) !important;
+    font-weight: 600 !important;
+  }
+
+  [data-testid='product-information'] .cl-flex-no-wrap .customily-edit-btn:hover,
+  [data-testid='product-information'] .cl-flex-no-wrap .customily-download-button:hover {
+    background: #e85a1a !important;
+    border-color: #e85a1a !important;
+    filter: none !important;
+  }
+
+  [data-testid='product-information'] .cl-flex-no-wrap .customily-download-button svg {
+    display: none !important;
+  }
+
+  [data-testid='product-information'] .cl-flex-no-wrap .cl_remove-image {
+    background: transparent !important;
+    border: none !important;
+    color: var(--ch-text-muted, #666) !important;
+    padding: 4px !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: var(--ch-radius-sm, 4px) !important;
+  }
+
+  [data-testid='product-information'] .cl-flex-no-wrap .cl_remove-image:hover {
+    color: #c62828 !important;
+    background: rgb(var(--color-foreground-rgb, 26 26 26) / 6%) !important;
+  }
+</style>
+
+<script>
+  function cherifyCustomilyModalBoot() {
+    const STR = {
+      title: {{ 'cherify.customily_modal.title' | t | json }},
+      close: {{ 'cherify.customily_modal.close' | t | json }},
+      apply: {{ 'cherify.customily_modal.apply' | t | json }},
+      cancel: {{ 'cherify.customily_modal.cancel' | t | json }},
+      edit: {{ 'cherify.customily_modal.edit' | t | json }},
+      applying: {{ 'cherify.customily_modal.applying' | t | json }},
+    };
+
+    const PLACEHOLDER_ID = 'cherify-customily-safe-placeholder';
+    let customilyPlaceholder = document.getElementById(PLACEHOLDER_ID);
+    if (!customilyPlaceholder) {
+      customilyPlaceholder = document.createElement('div');
+      customilyPlaceholder.id = PLACEHOLDER_ID;
+      customilyPlaceholder.style.display = 'none';
+    }
+
+    let currentPreviewRoot = null;
+    let isOpening = false;
+
+    const PDP_ROOT = '[data-testid="product-information"]';
+
+    function logDebug() {
+      if (typeof window !== 'undefined' && window.CHERIFY_CUSTOMILY_MODAL_DEBUG && typeof console !== 'undefined' && console.debug) {
+        console.debug.apply(console, arguments);
+      }
+    }
+
+    /**
+     * File inputs inside Shadow DOM are not `pdp.contains(input)` — use composedPath + host.
+     */
+    function isProductPageCustomilyFileInput(target, event) {
+      if (!(target instanceof HTMLInputElement) || target.type !== 'file') return false;
+      const pdp = document.querySelector(PDP_ROOT);
+      if (!pdp) return true;
+
+      if (pdp.contains(target)) return true;
+
+      if (event && typeof event.composedPath === 'function') {
+        const path = event.composedPath();
+        for (let i = 0; i < path.length; i++) {
+          const n = path[i];
+          if (n === pdp) return true;
+          if (n instanceof Node && pdp.contains(n)) return true;
+          if (n instanceof Element && n.id === 'customily-options') return true;
+        }
+      }
+
+      const r = target.getRootNode && target.getRootNode();
+      if (r instanceof ShadowRoot && r.host && pdp.contains(r.host)) return true;
+
+      return false;
+    }
+
+    /**
+     * Unified Customily: canvas often under .customily_gallery_media (sibling of slider).
+     * Resolve by .cl-canvas-container first so we never move a slide without the live canvas.
+     */
+    function findPreviewRoot() {
+      const pdp = document.querySelector(PDP_ROOT);
+      const scope = pdp || document.querySelector('#MainContent') || document.body;
+
+      const cc =
+        scope.querySelector('.product-information__media .cl-canvas-container') ||
+        scope.querySelector('.cl-canvas-container') ||
+        document.querySelector('#MainContent .cl-canvas-container');
+
+      if (cc instanceof HTMLElement) {
+        const gm = cc.closest('.customily_gallery_media');
+        if (gm instanceof HTMLElement) return gm;
+        return cc;
+      }
+
+      const mediaHost = scope.querySelector('.product-information__media') || scope;
+
+      const galleryMedia = mediaHost.querySelector('.customily_gallery_media');
+      if (galleryMedia instanceof HTMLElement && galleryMedia.querySelector('.cl-canvas-container')) {
+        return galleryMedia;
+      }
+
+      const slideCanvas = mediaHost.querySelector('.customily_gallery_slide .cl-canvas-container');
+      if (slideCanvas) {
+        const slide = slideCanvas.closest('.customily_gallery_slide');
+        if (slide instanceof HTMLElement) return slide;
+      }
+
+      const firstSlide = mediaHost.querySelector('.customily_gallery_slide');
+      if (firstSlide instanceof HTMLElement) return firstSlide;
+
+      const fallback = mediaHost.querySelector('.cl-canvas-container');
+      return fallback instanceof HTMLElement ? fallback : null;
+    }
+
+    let myDialog = document.getElementById('cherify-customily-native-dialog');
+    if (!myDialog) {
+      myDialog = document.createElement('dialog');
+      myDialog.id = 'cherify-customily-native-dialog';
+      myDialog.setAttribute('aria-labelledby', 'cherify-customily-dialog-title');
+
+      myDialog.innerHTML = `
+      <div class="cherify-customily-dialog-header">
+        <h3 id="cherify-customily-dialog-title" class="cherify-customily-dialog-title">${STR.title}</h3>
+        <button type="button" id="cherify-customily-dialog-x-btn" aria-label="${STR.close}">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M13 1L1 13M1 1L13 13" stroke="#999999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div id="cherify-customily-dialog-body" class="cherify-customily-dialog-body"></div>
+      <div class="cherify-customily-dialog-footer">
+        <button type="button" id="cherify-customily-dialog-cancel-btn">${STR.cancel}</button>
+        <button type="button" id="cherify-customily-dialog-apply-btn">${STR.apply}</button>
+      </div>
+    `;
+
+      document.body.appendChild(myDialog);
+
+      function closeDialog() {
+        if (myDialog.open) myDialog.close();
+      }
+
+      document.getElementById('cherify-customily-dialog-x-btn').addEventListener('click', function (e) {
+        e.preventDefault();
+        closeDialog();
+      });
+
+      document.getElementById('cherify-customily-dialog-cancel-btn').addEventListener('click', function (e) {
+        e.preventDefault();
+        closeDialog();
+      });
+
+      document.getElementById('cherify-customily-dialog-apply-btn').addEventListener('click', function (e) {
+        e.preventDefault();
+        closeDialog();
+      });
+
+      myDialog.addEventListener('close', function () {
+        document.body.classList.remove('cherify-customily-editor-open');
+        if (currentPreviewRoot && customilyPlaceholder.parentNode) {
+          try {
+            stripDialogForcedStyles(currentPreviewRoot);
+            customilyPlaceholder.parentNode.insertBefore(currentPreviewRoot, customilyPlaceholder);
+
+            currentPreviewRoot.style.opacity = '1';
+            currentPreviewRoot.style.visibility = 'visible';
+            currentPreviewRoot.style.display = '';
+
+            setTimeout(function () {
+              window.dispatchEvent(new Event('resize'));
+            }, 100);
+          } catch (error) {
+            console.error('[Cherify Customily Modal] Error restoring preview:', error);
+          }
+        }
+        currentPreviewRoot = null;
+      });
+
+      myDialog.addEventListener('click', function (event) {
+        if (!myDialog.open) return;
+        if (event.target === myDialog) {
+          closeDialog();
+        }
+      });
+    }
+
+    function showDialogModal() {
+      if (myDialog.open) return;
+      try {
+        if (typeof myDialog.showModal === 'function') {
+          myDialog.showModal();
+        } else {
+          myDialog.setAttribute('open', '');
+        }
+      } catch (err) {
+        logDebug('[Cherify Customily Modal] showModal failed, using open attribute', err);
+        myDialog.setAttribute('open', '');
+      }
+    }
+
+    /**
+     * Desktop: Customily keeps .cl-canvas-container display:none / .op-zero / height:0 until gallery activates.
+     * Inline styles win over non-important CSS — override here so the dialog is not blank after "Applying design…".
+     */
+    function revealCustomilyPreviewInDialog(root) {
+      if (!root || !(root instanceof HTMLElement)) return;
+
+      root.style.visibility = 'visible';
+      root.style.opacity = '1';
+
+      const canvases = root.querySelectorAll('.cl-canvas-container');
+      canvases.forEach(function (el) {
+        if (!(el instanceof HTMLElement)) return;
+        el.style.setProperty('display', 'flex', 'important');
+        el.style.setProperty('visibility', 'visible', 'important');
+        el.style.setProperty('opacity', '1', 'important');
+        el.style.setProperty('position', 'relative', 'important');
+        el.style.setProperty('z-index', '2', 'important');
+      });
+
+      root.querySelectorAll('.canvas-container, .canvas-wrapper').forEach(function (el) {
+        if (!(el instanceof HTMLElement)) return;
+        var h = el.style.height;
+        el.classList.remove('op-zero');
+        el.style.setProperty('opacity', '1', 'important');
+        if (h === '0px' || h === '0') {
+          el.style.setProperty('height', 'auto', 'important');
+          el.style.setProperty('min-height', '200px', 'important');
+        }
+      });
+
+      window.dispatchEvent(new Event('resize'));
+    }
+
+    function stripDialogForcedStyles(root) {
+      if (!root || !(root instanceof HTMLElement)) return;
+      root.querySelectorAll('.cl-canvas-container').forEach(function (el) {
+        if (!(el instanceof HTMLElement)) return;
+        ['display', 'visibility', 'opacity', 'position', 'z-index'].forEach(function (p) {
+          el.style.removeProperty(p);
+        });
+      });
+      root.querySelectorAll('.canvas-container, .canvas-wrapper').forEach(function (el) {
+        if (!(el instanceof HTMLElement)) return;
+        ['opacity', 'height', 'min-height'].forEach(function (p) {
+          el.style.removeProperty(p);
+        });
+      });
+    }
+
+    function activateModal(imageUrl, isReopen, retriesLeft) {
+      if (retriesLeft === undefined) retriesLeft = 50;
+
+      const previewRoot = findPreviewRoot();
+      if (!previewRoot) {
+        if (retriesLeft > 0) {
+          setTimeout(function () {
+            activateModal(imageUrl, isReopen, retriesLeft - 1);
+          }, 100);
+        } else if (typeof window !== 'undefined' && window.CHERIFY_CUSTOMILY_MODAL_DEBUG) {
+          console.warn('[Cherify Customily Modal] No .cl-canvas-container / gallery root found after retries.');
+        }
+        return;
+      }
+
+      logDebug('[Cherify Customily Modal] Using preview root:', previewRoot);
+
+      if (myDialog.open) return;
+
+      document.body.classList.add('cherify-customily-editor-open');
+
+      currentPreviewRoot = previewRoot;
+      previewRoot.parentNode.insertBefore(customilyPlaceholder, previewRoot);
+
+      const dialogBody = document.getElementById('cherify-customily-dialog-body');
+      dialogBody.appendChild(previewRoot);
+
+      revealCustomilyPreviewInDialog(previewRoot);
+
+      let loadingOverlay = document.getElementById('cherify-customily-loading-overlay');
+
+      if (isReopen) {
+        if (loadingOverlay) loadingOverlay.style.display = 'none';
+        previewRoot.style.opacity = '1';
+        revealCustomilyPreviewInDialog(previewRoot);
+        showDialogModal();
+        window.dispatchEvent(new Event('resize'));
+        setTimeout(function () {
+          revealCustomilyPreviewInDialog(previewRoot);
+          window.dispatchEvent(new Event('resize'));
+        }, 50);
+        setTimeout(function () {
+          revealCustomilyPreviewInDialog(previewRoot);
+        }, 300);
+        return;
+      }
+
+      if (!loadingOverlay) {
+        loadingOverlay = document.createElement('div');
+        loadingOverlay.id = 'cherify-customily-loading-overlay';
+        loadingOverlay.innerHTML = `
+          <img id="cherify-customily-temp-preview" src="" alt="" style="display: none;" />
+          <div class="cherify-customily-spinner-container">
+             <div class="cherify-customily-spinner"></div>
+             <div style="color: #000; font-size: 14px; font-weight: 500;">${STR.applying}</div>
+          </div>
+       `;
+        dialogBody.appendChild(loadingOverlay);
+      }
+
+      const tempImg = document.getElementById('cherify-customily-temp-preview');
+      if (imageUrl) {
+        tempImg.src = imageUrl;
+        tempImg.style.display = 'block';
+      } else if (tempImg) {
+        tempImg.style.display = 'none';
+      }
+
+      loadingOverlay.style.display = 'flex';
+      loadingOverlay.style.opacity = '1';
+
+      previewRoot.style.opacity = '1';
+      revealCustomilyPreviewInDialog(previewRoot);
+
+      const finishLoading = function () {
+        revealCustomilyPreviewInDialog(previewRoot);
+        if (loadingOverlay) {
+          loadingOverlay.style.opacity = '0';
+          setTimeout(function () {
+            loadingOverlay.style.display = 'none';
+            revealCustomilyPreviewInDialog(previewRoot);
+            window.dispatchEvent(new Event('resize'));
+            requestAnimationFrame(function () {
+              revealCustomilyPreviewInDialog(previewRoot);
+              window.dispatchEvent(new Event('resize'));
+            });
+          }, 300);
+        } else {
+          window.dispatchEvent(new Event('resize'));
+        }
+
+        if (tempImg && tempImg.src && tempImg.src.indexOf('blob:') === 0) {
+          setTimeout(function () {
+            URL.revokeObjectURL(tempImg.src);
+            tempImg.src = '';
+          }, 300);
+        }
+      };
+
+      let debounceTimer = null;
+      const observer = new MutationObserver(function () {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(function () {
+          observer.disconnect();
+          finishLoading();
+        }, 150);
+      });
+
+      observer.observe(previewRoot, {
+        attributes: true,
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
+
+      setTimeout(function () {
+        observer.disconnect();
+        finishLoading();
+      }, 13000);
+
+      showDialogModal();
+      revealCustomilyPreviewInDialog(previewRoot);
+      window.dispatchEvent(new Event('resize'));
+      setTimeout(function () {
+        revealCustomilyPreviewInDialog(previewRoot);
+        window.dispatchEvent(new Event('resize'));
+      }, 50);
+      setTimeout(function () {
+        revealCustomilyPreviewInDialog(previewRoot);
+      }, 250);
+    }
+
+    function nodeInPdpProduct(el) {
+      const pdp = document.querySelector(PDP_ROOT);
+      if (!pdp || !(el instanceof Node)) return false;
+      if (pdp.contains(el)) return true;
+      const r = el.getRootNode && el.getRootNode();
+      if (r instanceof ShadowRoot && r.host && pdp.contains(r.host)) return true;
+      return false;
+    }
+
+    function injectEditButton() {
+      const pdp = document.querySelector(PDP_ROOT);
+      if (!pdp) return;
+
+      let actionContainers = pdp.querySelectorAll(
+        '.customily-file-input .cl-flex-no-wrap, .customily-file-with-thumbnail .cl-flex-no-wrap'
+      );
+
+      if (actionContainers.length === 0) {
+        const extra = document.querySelectorAll(
+          '#customily-options .customily-file-input .cl-flex-no-wrap, #customily-options .customily-file-with-thumbnail .cl-flex-no-wrap'
+        );
+        const merged = [];
+        extra.forEach(function (n) {
+          merged.push(n);
+        });
+        actionContainers = merged;
+      }
+
+      if (actionContainers.length === 0) {
+        const wide = document.querySelectorAll('.customily-file-input .cl-flex-no-wrap');
+        const merged = [];
+        wide.forEach(function (n) {
+          if (nodeInPdpProduct(n)) merged.push(n);
+        });
+        actionContainers = merged;
+      }
+
+      actionContainers.forEach(function (container) {
+        if (container.querySelector('.customily-edit-btn')) return;
+
+        // Only show Edit button when an image has been selected (cl_remove-image is present).
+        const removeBtn = container.querySelector('.cl_remove-image');
+        if (!removeBtn) return;
+
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'customily-edit-btn btn needsclick cl-align-center';
+        editBtn.innerHTML = '<span>' + STR.edit + '</span>';
+
+        editBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          activateModal(null, true);
+        });
+
+        container.insertBefore(editBtn, container.firstChild);
+
+        removeBtn.addEventListener('click', function () {
+          if (editBtn.parentNode) {
+            editBtn.parentNode.removeChild(editBtn);
+          }
+        });
+      });
+    }
+
+    const globalObserver = new MutationObserver(function () {
+      injectEditButton();
+    });
+
+    globalObserver.observe(document.body, { childList: true, subtree: true });
+
+    document.addEventListener(
+      'change',
+      function (e) {
+        const t = e.target;
+        if (!t || t.type !== 'file') return;
+        if (!isProductPageCustomilyFileInput(t, e)) {
+          logDebug('[Cherify Customily Modal] Ignoring file input (not PDP Customily).');
+          return;
+        }
+
+        const file = t.files && t.files[0];
+        if (!file) return;
+
+        if (isOpening) return;
+        isOpening = true;
+        setTimeout(function () {
+          isOpening = false;
+        }, 2000);
+
+        let objectUrl = null;
+        try {
+          objectUrl = URL.createObjectURL(file);
+        } catch (err) {
+          objectUrl = null;
+        }
+
+        activateModal(objectUrl, false);
+      },
+      true
+    );
+
+    window.cherifyCustomilyModal = {
+      findPreviewRoot: findPreviewRoot,
+      /** Manual test: open editor after upload (same as Edit button). */
+      openEditor: function () {
+        activateModal(null, true, 50);
+      },
+      setDebug: function (on) {
+        window.CHERIFY_CUSTOMILY_MODAL_DEBUG = !!on;
+      },
+    };
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', cherifyCustomilyModalBoot);
+  } else {
+    cherifyCustomilyModalBoot();
+  }
+</script>

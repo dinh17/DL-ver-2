@@ -1,0 +1,62 @@
+{% doc %}
+  Fixed mobile preview strip above the header while scrolling the variant / personalization zone.
+  Visibility, zoom, and canvas mirror are handled by assets/cherify-mobile-sticky-preview.js.
+{% enddoc %}
+{% if request.page_type == 'product' %}
+  <div
+    class="cherify-mobile-sticky-preview"
+    data-cherify-mobile-sticky-preview
+    role="region"
+    aria-label="{{ 'cherify.pdp_mobile_preview.region_label' | t }}"
+    aria-hidden="true"
+  >
+    <button
+      type="button"
+      class="cherify-mobile-sticky-preview__close button-unstyled"
+      data-cherify-mobile-preview-close
+      aria-label="{{ 'cherify.pdp_mobile_preview.hide' | t }}"
+    >
+      <span class="svg-wrapper" aria-hidden="true">
+        {{- 'icon-close.svg' | inline_asset_content -}}
+      </span>
+    </button>
+    <div class="cherify-mobile-sticky-preview__frame">
+      <div class="cherify-mobile-sticky-preview__viewport">
+        <div class="cherify-mobile-sticky-preview__inner" data-ch-preview-zoom-level="0">
+          <canvas
+            class="cherify-mobile-sticky-preview__canvas"
+            width="1"
+            height="1"
+            aria-hidden="true"
+          ></canvas>
+        </div>
+      </div>
+      <div
+        class="cherify-mobile-sticky-preview__zoom"
+        role="group"
+        aria-label="{{ 'actions.zoom' | t }}"
+      >
+        <button
+          type="button"
+          class="cherify-mobile-sticky-preview__zoom-btn button-unstyled"
+          data-cherify-mobile-preview-zoom="in"
+          aria-label="{{ 'cherify.pdp_mobile_preview.zoom_in' | t }}"
+        >
+          <span class="svg-wrapper" aria-hidden="true">
+            {{- 'icon-plus.svg' | inline_asset_content -}}
+          </span>
+        </button>
+        <button
+          type="button"
+          class="cherify-mobile-sticky-preview__zoom-btn button-unstyled"
+          data-cherify-mobile-preview-zoom="out"
+          aria-label="{{ 'cherify.pdp_mobile_preview.zoom_out' | t }}"
+        >
+          <span class="svg-wrapper" aria-hidden="true">
+            {{- 'icon-minus.svg' | inline_asset_content -}}
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+{% endif %}

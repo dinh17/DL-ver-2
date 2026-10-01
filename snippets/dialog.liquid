@@ -1,0 +1,82 @@
+{% doc %}
+  Renders a reusable dialog component wrapper.
+
+  Usage:
+  {% render 'dialog',
+    dialog_id: 'my-dialog',
+    title_text: 'Hello World',
+    content: my_captured_html
+  %}
+
+  @param {string} dialog_id - Optional ID for the <dialog> element.
+  @param {string} dialog_layout - 'standard' (default) or 'custom'. 'custom' removes internal containers.
+  @param {string} title_text - Modal title (optional).
+  @param {string} title_class - Font size class for the title (default: 'h4').
+  @param {string} content - Main content of the dialog.
+  @param {string} footer_content - Optional content for the modal footer.
+  @param {boolean} show_close_button - Default: true.
+  @param {string} dialog_classes - Custom classes for the <dialog> element.
+  @param {string} dialog_attributes - Additional HTML data attributes for the <dialog> element.
+  @param {string} close_button_classes - Space-separated classes for the close button.
+  @param {string} body_classes - Custom classes for the dialog__body wrapper.
+  @param {boolean} wrapper_component - If false, skips outputting <dialog-component> wrapper (default: true).
+{% enddoc %}
+
+{%- liquid
+  assign dialog_layout = dialog_layout | default: 'standard'
+  
+  if show_close_button == null
+    assign show_close_button = true
+  endif
+
+  if wrapper_component == null
+    assign wrapper_component = true
+  endif
+
+  assign title_class = title_class | default: 'h4'
+-%}
+
+{%- if wrapper_component -%}
+<dialog-component>
+{%- endif -%}
+  <dialog 
+    {% if dialog_id %}id="{{ dialog_id }}"{% endif %} 
+    class="dialog-modal color-{{ settings.popover_color_scheme }} {{ dialog_classes }}" 
+    {% if title_text %}aria-labelledby="{{ dialog_id | default: 'dialog' }}-heading"{% endif %}
+    {{ dialog_attributes }}
+    ref="dialog"
+  >
+    {%- if dialog_layout == 'custom' -%}
+      {%- if show_close_button -%}
+        <button type="button" class="button-unstyled close-button {{ close_button_classes }}" aria-label="{{ 'accessibility.close_dialog' | t }}" on:click="/closeDialog" data-dialog-close ref="closeButton">
+          <span class="svg-wrapper">{{- 'icon-close.svg' | inline_asset_content -}}</span>
+        </button>
+      {%- endif -%}
+      {{ content }}
+    {%- else -%}
+      {%- if show_close_button -%}
+        <button type="button" class="button-unstyled close-button {{ close_button_classes }}" aria-label="{{ 'accessibility.close_dialog' | t }}" on:click="/closeDialog" data-dialog-close ref="closeButton">
+          <span class="svg-wrapper">{{- 'icon-close.svg' | inline_asset_content -}}</span>
+        </button>
+      {%- endif -%}
+
+      {%- if title_text != blank -%}
+        <div class="dialog__header">
+          <h2 class="{{ title_class }}" id="{{ dialog_id | default: 'dialog' }}-heading">{{ title_text }}</h2>
+        </div>
+      {%- endif -%}
+
+      <div class="dialog__body {{ body_classes }}">
+        {{ content }}
+      </div>
+
+      {%- if footer_content != blank -%}
+        <div class="dialog__footer">
+          {{ footer_content }}
+        </div>
+      {%- endif -%}
+    {%- endif -%}
+  </dialog>
+{%- if wrapper_component -%}
+</dialog-component>
+{%- endif -%}

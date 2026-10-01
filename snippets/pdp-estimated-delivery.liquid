@@ -1,0 +1,369 @@
+{% doc %}
+  Renders the “Order today and get it by …” estimate row.
+  Used by the `pdp-estimated-delivery` block; logic lives in `pdp-estimated-delivery.js`.
+
+  @param {object} block - Theme block
+{% enddoc %}
+
+{%- liquid
+  if block.settings.prefix != blank
+    assign prefix_text = block.settings.prefix
+  else
+    assign prefix_text = 'products.product.pdp_estimated_delivery_prefix' | t
+  endif
+-%}
+
+<anchored-popover-component
+  data-hover-triggered="true"
+  data-close-on-resize
+  class="pdp-estimated-delivery spacing-style"
+  data-pdp-estimated-delivery
+  data-min-days="{{ block.settings.min_days }}"
+  data-max-days="{{ block.settings.max_days }}"
+  data-mobile-breakpoint="749"
+  style="{% render 'spacing-style', settings: block.settings %}"
+  {{ block.shopify_attributes }}
+>
+  <p class="pdp-estimated-delivery__text">
+    {%- if block.settings.show_emoji -%}
+      <span class="pdp-estimated-delivery__emoji" aria-hidden="true">{{ 'products.product.pdp_estimated_delivery_emoji' | t }}</span>
+    {%- endif -%}
+    <span class="pdp-estimated-delivery__prefix">{{ prefix_text }}</span>
+    <button
+      type="button"
+      class="pdp-estimated-delivery__range-trigger"
+      ref="trigger"
+      popovertarget="pdp-eta-popover-{{ block.id }}"
+      data-pdp-eta-open
+      style="anchor-name: --pdp-eta-{{ block.id }};"
+    >
+      <strong class="pdp-estimated-delivery__range" aria-live="polite"></strong>
+    </button>
+  </p>
+
+  <div
+    class="pdp-estimated-delivery__popover"
+    ref="popover"
+    id="pdp-eta-popover-{{ block.id }}"
+    popover="auto"
+    style="position-anchor: --pdp-eta-{{ block.id }};"
+  >
+    <div class="pdp-estimated-delivery__timeline">
+      <div class="pdp-estimated-delivery__step">
+        <div class="pdp-estimated-delivery__step-icon" aria-hidden="true">🖐</div>
+        <div class="pdp-estimated-delivery__step-date" data-pdp-order-placed></div>
+        <div class="pdp-estimated-delivery__step-label">Order placed</div>
+      </div>
+      <div class="pdp-estimated-delivery__step">
+        <div class="pdp-estimated-delivery__step-icon" aria-hidden="true">🚚</div>
+        <div class="pdp-estimated-delivery__step-date" data-pdp-order-ships></div>
+        <div class="pdp-estimated-delivery__step-label">Order ships</div>
+      </div>
+      <div class="pdp-estimated-delivery__step">
+        <div class="pdp-estimated-delivery__step-icon" aria-hidden="true">🎁</div>
+        <div class="pdp-estimated-delivery__step-date" data-pdp-order-delivered></div>
+        <div class="pdp-estimated-delivery__step-label">Delivered</div>
+      </div>
+    </div>
+    <ul class="pdp-estimated-delivery__notes">
+      <li>Made to order.</li>
+      <li>Cancellation or changes are available within 2 hours after placing your order.</li>
+    </ul>
+  </div>
+
+  {%- capture eta_dialog_content -%}
+    <div class="pdp-estimated-delivery__timeline pdp-estimated-delivery__timeline--modal">
+      <div class="pdp-estimated-delivery__step">
+        <div class="pdp-estimated-delivery__step-icon" aria-hidden="true">🖐</div>
+        <div class="pdp-estimated-delivery__step-date" data-pdp-modal-order-placed></div>
+        <div class="pdp-estimated-delivery__step-label">Order placed</div>
+      </div>
+      <div class="pdp-estimated-delivery__step">
+        <div class="pdp-estimated-delivery__step-icon" aria-hidden="true">🚚</div>
+        <div class="pdp-estimated-delivery__step-date" data-pdp-modal-order-ships></div>
+        <div class="pdp-estimated-delivery__step-label">Order ships</div>
+      </div>
+      <div class="pdp-estimated-delivery__step">
+        <div class="pdp-estimated-delivery__step-icon" aria-hidden="true">🎁</div>
+        <div class="pdp-estimated-delivery__step-date" data-pdp-modal-order-delivered></div>
+        <div class="pdp-estimated-delivery__step-label">Delivered</div>
+      </div>
+    </div>
+    <ul class="pdp-estimated-delivery__notes">
+      <li>Made to order.</li>
+      <li>Cancellation or changes are available within 2 hours after placing your order.</li>
+    </ul>
+  {%- endcapture -%}
+  {% render 'dialog', 
+    title_text: 'Estimated delivery timeline',
+    content: eta_dialog_content,
+    dialog_classes: 'pdp-estimated-delivery__modal',
+    dialog_attributes: 'data-pdp-eta-modal',
+    close_button_classes: 'pdp-estimated-delivery__modal-close'
+  %}
+</anchored-popover-component>
+
+{% stylesheet %}
+  .pdp-estimated-delivery__text {
+    margin: 0;
+    font-size: var(--font-paragraph--size);
+    line-height: var(--font-paragraph--line-height);
+    color: rgb(var(--color-foreground-rgb) / 0.85);
+  }
+
+  .pdp-estimated-delivery__emoji {
+    margin-inline-end: 0.25em;
+  }
+
+  .pdp-estimated-delivery__prefix {
+    margin-inline-end: 0.25em;
+  }
+
+  .pdp-estimated-delivery__range {
+    font-weight: 600;
+    color: var(--color-foreground);
+    border-bottom: 1px dashed rgb(var(--color-foreground-rgb) / 0.45);
+  }
+
+  .pdp-estimated-delivery__range-trigger {
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+
+  .pdp-estimated-delivery__popover {
+    --pdp-eta-popover-spacing: 8px;
+    --pdp-eta-popover-viewport-margin: 16px;
+    --pdp-eta-popover-max-width: 360px;
+
+    min-inline-size: 280px;
+    max-inline-size: var(--pdp-eta-popover-max-width);
+    background: var(--color-background);
+    border: var(--style-border-popover);
+    border-radius: var(--style-border-radius-popover, 0);
+    box-shadow: var(--shadow-popover);
+    padding: 0.875rem 1rem;
+    margin: 0;
+    overflow: hidden;
+    transition-property: display, opacity, translate;
+    transition-duration: 0.3s;
+    transition-timing-function: var(--ease-out-quad);
+    transition-behavior: allow-discrete;
+    translate: 0 12px;
+    opacity: 0;
+  }
+
+  /* Native anchor positioning for supported browsers */
+  .pdp-estimated-delivery__popover {
+    inset: unset;
+    top: calc(anchor(bottom) + var(--pdp-eta-popover-spacing));
+    left: anchor(left);
+  }
+
+  @supports (position-try-fallbacks: --top-left) {
+    .pdp-estimated-delivery__popover {
+      position-try-fallbacks: --top-left;
+    }
+
+    @position-try --top-left {
+      top: calc(anchor(top) - var(--pdp-eta-popover-spacing));
+      bottom: auto;
+      transform: translateY(-100%);
+    }
+  }
+
+  /* Fallback positioning using custom properties from JS */
+  @supports not (position-anchor: --pdp-eta) {
+    .pdp-estimated-delivery__popover {
+      position: fixed;
+      top: calc(var(--anchor-bottom) * 1px + var(--pdp-eta-popover-spacing));
+      left: max(
+        var(--pdp-eta-popover-viewport-margin),
+        min(
+          var(--anchor-left) * 1px,
+          100vw - var(--pdp-eta-popover-max-width) - var(--pdp-eta-popover-viewport-margin)
+        )
+      );
+    }
+  }
+
+  .pdp-estimated-delivery__popover:popover-open {
+    translate: 0 0;
+    opacity: 1;
+  }
+
+  @starting-style {
+    .pdp-estimated-delivery__popover:popover-open {
+      translate: 0 12px;
+      opacity: 0;
+    }
+  }
+
+  .pdp-estimated-delivery__timeline {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .pdp-estimated-delivery__step {
+    text-align: center;
+    position: relative;
+  }
+
+  .pdp-estimated-delivery__step:not(:first-child)::before {
+    content: '';
+    position: absolute;
+    top: 0.9rem;
+    left: calc(-50% + 0.4rem);
+    width: calc(100% - 1.25rem);
+    height: 1px;
+    background: rgb(var(--color-foreground-rgb) / 0.22);
+  }
+
+  .pdp-estimated-delivery__step-icon {
+    width: 1.8rem;
+    height: 1.8rem;
+    border: 1px solid rgb(var(--color-foreground-rgb) / 0.2);
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+  }
+
+  .pdp-estimated-delivery__step-date {
+    font-weight: 600;
+    font-size: 0.8rem;
+  }
+
+  .pdp-estimated-delivery__step-label {
+    font-size: 0.72rem;
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+  }
+
+  .pdp-estimated-delivery__notes {
+    margin: 0;
+    padding-left: 1rem;
+    font-size: 0.75rem;
+    line-height: 1.35;
+    color: rgb(var(--color-foreground-rgb) / 0.82);
+  }
+
+  .pdp-estimated-delivery__notes li + li {
+    margin-top: 0.2rem;
+  }
+
+  .pdp-estimated-delivery__modal {
+    padding: 0;
+    border: 0;
+    background-color: var(--color-background);
+    overflow: hidden;
+    margin: auto;
+    width: fit-content;
+    height: fit-content;
+    border-radius: var(--style-border-radius-popover, 0.85rem);
+  }
+
+  .pdp-estimated-delivery__modal::backdrop {
+    background: rgb(0 0 0 / 0.45);
+  }
+
+  .pdp-estimated-delivery__modal[open] {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: translate(-50%, -50%) !important;
+    display: flex;
+    flex-direction: column;
+    max-width: min(calc(100vw - 2rem), 32rem);
+    max-height: min(85vh, 40rem);
+    width: 100%;
+    box-shadow: var(--shadow-popover, 0 10px 40px rgb(0 0 0 / 0.15));
+    z-index: var(--layer-modal);
+  }
+
+  @media screen and (max-width: 749px) {
+    .pdp-estimated-delivery__modal {
+      margin: 0;
+      max-width: calc(100vw - 2rem);
+      border-radius: var(--style-border-radius-popover) var(--style-border-radius-popover) 0 0;
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      bottom: auto;
+      right: auto;
+      width: min(calc(100vw - 2rem), 32rem);
+    }
+    
+    .pdp-estimated-delivery__modal[open] {
+      inset: auto !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      bottom: auto !important;
+      right: auto !important;
+      width: min(calc(100vw - 2rem), 32rem);
+      max-width: calc(100vw - 2rem);
+      max-height: min(85vh, 40rem);
+    }
+  }
+
+  .pdp-estimated-delivery__modal-close {
+    position: absolute;
+    top: var(--margin-md, 1rem);
+    right: var(--margin-md, 1rem);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(var(--color-foreground-rgb) / 0.05);
+    border-radius: 50%;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    z-index: var(--layer-raised, 2);
+    padding: 0;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .pdp-estimated-delivery__modal-close:hover {
+    background-color: rgb(var(--color-foreground-rgb) / 0.1);
+  }
+
+  .pdp-estimated-delivery__modal-close:active {
+    transform: scale(0.95);
+  }
+
+  .pdp-estimated-delivery__modal-close .svg-wrapper,
+  .pdp-estimated-delivery__modal-close svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .pdp-estimated-delivery__timeline--modal {
+    padding: 0;
+    margin-bottom: var(--margin-lg, 1rem);
+  }
+
+  .pdp-estimated-delivery__modal .pdp-estimated-delivery__notes {
+    padding: 0 var(--padding-2xl, 1.5rem) var(--padding-2xl, 1.5rem);
+  }
+
+  @media screen and (max-width: 749px) {
+    .pdp-estimated-delivery__popover {
+      display: none;
+    }
+  }
+
+  @media screen and (min-width: 750px) {
+    .pdp-estimated-delivery__modal {
+      display: none;
+    }
+  }
+{% endstylesheet %}

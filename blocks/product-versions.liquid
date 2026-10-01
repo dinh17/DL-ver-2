@@ -1,0 +1,237 @@
+{%- liquid
+  assign block_settings = block.settings
+  assign product_resource = closest.product
+  assign versions = product_resource.metafields.custom.product_versions.value
+  assign valid_versions = 0
+-%}
+
+{% if versions %}
+  {% for prod in versions %}
+    {%- liquid
+      assign linked_product = prod.product_link.value
+      if linked_product == blank
+        assign linked_product = all_products[prod.product_link]
+      endif
+    -%}
+    {% if linked_product.title != blank %}
+      {% assign valid_versions = valid_versions | plus: 1 %}
+    {% endif %}
+  {% endfor %}
+
+  {% if valid_versions > 0 %}
+    <div
+      class="related-items--wrapper spacing-style"
+      style="
+        {% render 'spacing-style', settings: block_settings %}
+      "
+      {{ block.shopify_attributes }}
+    >
+      {% if valid_versions == 1 %}
+        <span class="related-items--label">{{ block_settings.label_singular | default: "Other version:" }}</span>
+      {% else %}
+        <span class="related-items--label">{{ block_settings.label_plural | default: "Other versions:" }}</span>
+      {% endif %}
+
+      <div class="related-items--list">
+        {% for prod in versions %}
+          {%- liquid
+            assign linked_product = prod.product_link.value
+            if linked_product == blank
+              assign linked_product = all_products[prod.product_link]
+            endif
+            assign title_of_version = prod.title_of_version.value | default: prod.title_of_version
+          -%}
+          {% if linked_product.title != blank %}
+            <span class="related-items--pill{% if linked_product.handle == product_resource.handle %} related-items--pill-active{% endif %}">
+              <a href="{{ linked_product.url }}" class="link">
+                {{ title_of_version }}
+              </a>
+            </span>
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% if valid_versions > 1 %}
+        <span class="scroll-indicator" aria-hidden="true">›</span>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endif %}
+
+{% stylesheet %}
+  .related-items--wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow-x: auto;
+    font-size: 1rem;
+    gap: 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    width: 100%;
+  }
+
+  .related-items--wrapper::-webkit-scrollbar {
+    display: none;
+  }
+
+  .related-items--label {
+    flex-shrink: 0;
+    margin-right: 6px;
+    font-weight: 500;
+    color: rgb(var(--color-foreground-rgb) / var(--opacity-subdued-text, 0.7));
+  }
+
+  .related-items--list {
+    display: inline-flex;
+    gap: 8px;
+    white-space: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    max-width: 100%;
+  }
+
+  .related-items--list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .related-items--pill {
+    background-color: var(--color-variant-background, #f4f4f4);
+    border: var(--options-border-width, 1px) solid var(--color-variant-border, #e6e6e6);
+    border-radius: var(--options-border-radius, var(--variant-picker-button-radius, 4px));
+    font-size: 1rem;
+    scroll-snap-align: start;
+    white-space: nowrap;
+    transition: all var(--animation-speed, 0.2s) var(--animation-easing, ease);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .related-items--pill a {
+    text-decoration: none;
+    color: var(--color-variant-text, var(--color-foreground, #000));
+    padding: 6px 12px;
+    font-weight: 500;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .related-items--pill:hover {
+    background-color: var(--color-variant-hover-background, #e8e8e8);
+    border-color: var(--color-variant-hover-border, var(--color-foreground, #000));
+  }
+  
+  .related-items--pill:hover a {
+    color: var(--color-variant-hover-text, var(--color-foreground, #000));
+  }
+
+  /* Current active selection styling */
+  .related-items--pill.related-items--pill-active {
+    background-color: var(--color-selected-variant-background, #fff);
+    border-color: var(--color-selected-variant-border, var(--color-primary, #000));
+    box-shadow: 0 0 0 1px var(--color-selected-variant-border, var(--color-primary, #000));
+  }
+
+  .related-items--pill.related-items--pill-active a {
+    color: var(--color-selected-variant-text, var(--color-primary, #000));
+    font-weight: 600;
+  }
+
+  /* Scroll indicator */
+  .scroll-indicator {
+    font-size: 1.8rem;
+    color: var(--color-primary, #000);
+    animation: bounce-right 1.5s infinite ease-in-out;
+    margin-left: 4px;
+    user-select: none;
+    flex-shrink: 0;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+  }
+
+  @keyframes bounce-right {
+    0%, 100% { transform: translateX(0); opacity: 0.4; }
+    50% { transform: translateX(4px); opacity: 0.8; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Product Versions",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Renders alternative product versions configured via metafield custom.product_versions"
+    },
+    {
+      "type": "text",
+      "id": "label_singular",
+      "label": "Singular Label",
+      "default": "Other version:"
+    },
+    {
+      "type": "text",
+      "id": "label_plural",
+      "label": "Plural Label",
+      "default": "Other versions:"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-start",
+      "label": "t:settings.left",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-inline-end",
+      "label": "t:settings.right",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product Versions",
+      "category": "t:categories.product"
+    }
+  ]
+}
+{% endschema %}

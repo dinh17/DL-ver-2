@@ -1,0 +1,878 @@
+{% doc %}
+  @prompt
+    Tạo lại cho tôi **một section Shopify hoàn chỉnh** dạng promo banner responsive, với yêu cầu rất cụ thể như sau.
+    
+    ## Mục tiêu giao diện
+    
+    Section gồm **2 phần liền nhau thành 1 khối thống nhất**:
+    
+    ### Phần 1: Banner
+    
+    * Có ảnh banner lớn
+    * Có content box overlay trên desktop
+    * Content gồm:
+    
+      * heading
+      * description
+      * button CTA
+    
+    ### Phần 2: Feature bar
+    
+    * Nằm ngay bên dưới banner
+    * Gồm 4 item
+    * Mỗi item có icon + text
+    
+    ## Yêu cầu cực kỳ quan trọng
+    
+    **Banner và feature bar phải luôn dính liền nhau 100%, không được có khoảng hở trắng ở giữa ở bất kỳ màn hình nào.**
+    
+    Fix triệt để các nguyên nhân có thể gây hở:
+    
+    * margin-top / margin-bottom
+    * padding-top / padding-bottom
+    * gap / row-gap / column-gap
+    * ảnh inline tạo khe hở
+    * line-height gây spacing
+    * wrapper cha tạo khoảng trắng
+    * layout desktop/mobile khác nhau làm phát sinh khoảng cách
+    
+    ## Cách xử lý bắt buộc
+    
+    1. Banner và feature bar phải nằm trong **1 wrapper chung**
+    2. Wrapper chung nên dùng:
+    
+       * `display: flex;`
+       * `flex-direction: column;`
+       * `gap: 0;`
+       * `overflow: hidden;`
+    3. Toàn bộ phần banner, media, feature bar phải reset spacing:
+    
+       * `margin: 0;`
+       * `padding: 0;`
+    4. Ảnh phải dùng:
+    
+       * `display: block;`
+       * `width: 100%;`
+       * `height: auto;`
+    5. Không được để bất kỳ khoảng trắng nào giữa banner và feature bar khi resize
+    6. Responsive ổn định trên desktop / tablet / mobile
+    
+    ## Yêu cầu giao diện desktop
+    
+    * Desktop hiển thị giống dạng hero banner
+    * Ảnh desktop làm banner chính
+    * Content box overlay nằm trên ảnh, ưu tiên bên trái
+    * Content box có nền riêng, bo góc lớn
+    * Button CTA dạng pill
+    * Feature bar nằm ngay dưới banner và chạm sát banner, không có khoảng hở
+    
+    ## Yêu cầu giao diện mobile
+    
+    * Mobile hiển thị:
+    
+      1. heading
+      2. description
+      3. button CTA
+      4. image mobile
+      5. feature grid 2 cột
+    * Trên mobile, content **không overlay lên ảnh**
+    * Cho phép chọn căn lề nội dung mobile:
+    
+      * left
+      * center
+      * right
+    * Ảnh mobile nằm ngay dưới content
+    * Feature bar/grid nằm ngay dưới ảnh và **vẫn phải dính liền**, không được hở
+    
+    ## Đầu vào section settings
+    
+    Tạo schema đầy đủ với các setting sau:
+    
+    ### Nội dung chính
+    
+    * `heading`
+    * `description`
+    * `button_label`
+    * `button_link`
+    
+    ### Ảnh
+    
+    * `desktop_image`
+    * `mobile_image`
+    * Nếu không có `mobile_image` thì fallback sang `desktop_image`
+    
+    ### Căn lề nội dung
+    
+    * `content_alignment_desktop`
+    
+      * left / center / right
+    * `content_alignment_mobile`
+    
+      * left / center / right
+    
+    ### Bật/tắt feature bar
+    
+    * `show_features`
+    
+    ### 4 feature item
+    
+    Mỗi item gồm:
+    
+    * `feature_icon_1`, `feature_text_1`
+    * `feature_icon_2`, `feature_text_2`
+    * `feature_icon_3`, `feature_text_3`
+    * `feature_icon_4`, `feature_text_4`
+    
+    Nếu theme không có icon picker thì dùng:
+    
+    * text icon
+    * SVG inline
+    * hoặc class/icon đơn giản
+    
+    ## Yêu cầu chỉnh màu sắc
+    
+    Tôi muốn màu sắc chỉnh được giống các ví dụ trước, gồm:
+    
+    ### Màu section
+    
+    * `section_background_color`
+    
+    ### Màu content box
+    
+    * `content_box_background`
+    * `content_box_opacity`
+    
+    ### Màu chữ
+    
+    * `heading_color`
+    * `description_color`
+    
+    ### Màu nút
+    
+    * `button_background_color`
+    * `button_text_color`
+    
+    ### Màu feature bar
+    
+    * `feature_bar_background`
+    * `feature_icon_color`
+    * `feature_text_color`
+    
+    ## Yêu cầu cấu trúc code
+    
+    Viết thành **1 file section Shopify hoàn chỉnh**, ví dụ:
+    `sections/custom-promo-banner.liquid`
+    
+    Bao gồm đầy đủ:
+    
+    1. Liquid markup
+    2. CSS hoàn chỉnh
+    3. Schema JSON hoàn chỉnh
+    
+    ## Yêu cầu kỹ thuật
+    
+    * Dùng **Liquid + HTML + CSS**
+    * Không phụ thuộc thư viện ngoài
+    * Không cần JS nếu không thật sự cần
+    * Class name rõ ràng, tránh conflict với theme
+    * Code dễ maintain
+    * Dùng setting xuyên suốt
+    * Có fallback hợp lý nếu thiếu ảnh / thiếu feature text
+    * Viết semantic và responsive tốt
+    
+    ## Yêu cầu spacing cực kỳ quan trọng
+    
+    Hãy đảm bảo trong code:
+    
+    * Không có `margin-bottom` ở banner gây hở xuống feature bar
+    * Không có `margin-top` ở feature bar gây hở lên banner
+    * Không có `gap` giữa media và feature bar
+    * Không có spacing do `img` là inline
+    * Không có spacing do wrapper phụ
+    * Nếu cần, đặt:
+    
+      * `line-height: 0;` cho vùng media
+      * `display: block;` cho ảnh
+    * Nếu dùng grid/flex thì `gap: 0`
+    
+    ## Mong muốn output
+    
+    Tôi muốn bạn trả về:
+    
+    * code hoàn chỉnh, chạy được ngay
+    * section nhìn giống mẫu:
+    
+      * desktop: content overlay trên ảnh
+      * mobile: content nằm trên, ảnh bên dưới
+      * feature bar ngay sát phần trên
+    * không được chỉ mô tả, mà phải viết code đầy đủ
+    
+    ## Lưu ý cuối cùng
+    
+    Ưu tiên sự ổn định khi responsive.
+    Mục tiêu là:
+    
+    * đẹp giống mockup
+    * chỉnh được màu
+    * chỉnh được nội dung
+    * chỉnh được ảnh desktop/mobile
+    * chỉnh được căn lề mobile
+    * và đặc biệt **2 phần luôn liền nhau, không bao giờ bị hở**
+    , ở giao diện mobile bỏ nút shop now đi
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-promo-banner-wrapper-{{ ai_gen_id }} {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: {{ block.settings.section_background_color }};
+    width: 100%;
+  }
+
+  .ai-promo-banner-main-{{ ai_gen_id }} {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    line-height: 0;
+    width: 100%;
+  }
+
+  .ai-promo-banner-image-{{ ai_gen_id }} {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    object-fit: cover;
+  }
+
+  .ai-promo-banner-placeholder-{{ ai_gen_id }} {
+    display: block;
+    width: 100%;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    min-height: 400px;
+  }
+
+  .ai-promo-banner-placeholder-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+  }
+
+  .ai-promo-banner-content-overlay-{{ ai_gen_id }} {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    max-width: 500px;
+    padding: 40px;
+    background-color: {{ block.settings.content_box_background }};
+    opacity: {{ block.settings.content_box_opacity }};
+    border-radius: 24px;
+    z-index: 2;
+  }
+
+  .ai-promo-banner-content-overlay-{{ ai_gen_id }}--left {
+    left: 60px;
+  }
+
+  .ai-promo-banner-content-overlay-{{ ai_gen_id }}--center {
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .ai-promo-banner-content-overlay-{{ ai_gen_id }}--right {
+    right: 60px;
+  }
+
+  .ai-promo-banner-content-mobile-{{ ai_gen_id }} {
+    display: none;
+  }
+
+  .ai-promo-banner-heading-{{ ai_gen_id }} {
+    margin: 0 0 16px 0;
+    padding: 0;
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: {{ block.settings.heading_color }};
+  }
+
+  .ai-promo-banner-description-{{ ai_gen_id }} {
+    margin: 0 0 24px 0;
+    padding: 0;
+    font-size: 16px;
+    line-height: 1.5;
+    color: {{ block.settings.description_color }};
+  }
+
+  .ai-promo-banner-button-{{ ai_gen_id }} {
+    display: inline-block;
+    padding: 14px 32px;
+    background-color: {{ block.settings.button_background_color }};
+    color: {{ block.settings.button_text_color }};
+    text-decoration: none;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: opacity 0.3s ease;
+    margin: 0;
+  }
+
+  .ai-promo-banner-button-{{ ai_gen_id }}:hover {
+    opacity: 0.9;
+  }
+
+  .ai-promo-banner-features-{{ ai_gen_id }} {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin: 0;
+    padding: 24px 40px;
+    background-color: {{ block.settings.feature_bar_background }};
+    line-height: normal;
+  }
+
+  .ai-promo-banner-feature-item-{{ ai_gen_id }} {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 0;
+    margin: 0;
+  }
+
+  .ai-promo-banner-feature-icon-{{ ai_gen_id }} {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    color: {{ block.settings.feature_icon_color }};
+    margin: 0;
+    padding: 0;
+  }
+
+  .ai-promo-banner-feature-icon-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .ai-promo-banner-feature-text-{{ ai_gen_id }} {
+    font-size: 14px;
+    color: {{ block.settings.feature_text_color }};
+    margin: 0;
+    padding: 0;
+    line-height: 1.4;
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-promo-banner-main-{{ ai_gen_id }} {
+      position: static;
+    }
+
+    .ai-promo-banner-content-overlay-{{ ai_gen_id }} {
+      display: none;
+    }
+
+    .ai-promo-banner-content-mobile-{{ ai_gen_id }} {
+      display: block;
+      padding: 32px 20px;
+      margin: 0;
+      line-height: normal;
+    }
+
+    .ai-promo-banner-content-mobile-{{ ai_gen_id }}--left {
+      text-align: left;
+    }
+
+    .ai-promo-banner-content-mobile-{{ ai_gen_id }}--center {
+      text-align: center;
+    }
+
+    .ai-promo-banner-content-mobile-{{ ai_gen_id }}--right {
+      text-align: right;
+    }
+
+    .ai-promo-banner-heading-{{ ai_gen_id }} {
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+
+    .ai-promo-banner-description-{{ ai_gen_id }} {
+      font-size: 14px;
+      margin-bottom: 0;
+    }
+
+    .ai-promo-banner-button-{{ ai_gen_id }} {
+      display: none;
+    }
+
+    .ai-promo-banner-image-desktop-{{ ai_gen_id }} {
+      display: none;
+    }
+
+    .ai-promo-banner-placeholder-{{ ai_gen_id }} {
+      min-height: 300px;
+    }
+
+    .ai-promo-banner-placeholder-{{ ai_gen_id }} svg {
+      min-height: 300px;
+    }
+
+    .ai-promo-banner-features-{{ ai_gen_id }} {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      padding: 24px 20px;
+    }
+
+    .ai-promo-banner-feature-item-{{ ai_gen_id }} {
+      justify-content: flex-start;
+    }
+  }
+{% endstyle %}
+
+<div class="ai-promo-banner-wrapper-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <div class="ai-promo-banner-content-mobile-{{ ai_gen_id }} ai-promo-banner-content-mobile-{{ ai_gen_id }}--{{ block.settings.content_alignment_mobile }}">
+    {% if block.settings.heading != blank %}
+      <h2 class="ai-promo-banner-heading-{{ ai_gen_id }}">{{ block.settings.heading }}</h2>
+    {% endif %}
+    
+    {% if block.settings.description != blank %}
+      <div class="ai-promo-banner-description-{{ ai_gen_id }}">{{ block.settings.description }}</div>
+    {% endif %}
+  </div>
+
+  <div class="ai-promo-banner-main-{{ ai_gen_id }}">
+    {% if block.settings.desktop_image != blank %}
+      <img
+        src="{{ block.settings.desktop_image | image_url: width: 2000 }}"
+        alt="{{ block.settings.desktop_image.alt | escape }}"
+        loading="lazy"
+        width="{{ block.settings.desktop_image.width }}"
+        height="{{ block.settings.desktop_image.height }}"
+        class="ai-promo-banner-image-{{ ai_gen_id }} ai-promo-banner-image-desktop-{{ ai_gen_id }}"
+      >
+    {% else %}
+      <div class="ai-promo-banner-placeholder-{{ ai_gen_id }}">
+        {{ 'hero-apparel-1' | placeholder_svg_tag }}
+      </div>
+    {% endif %}
+
+    {% assign mobile_img = block.settings.mobile_image | default: block.settings.desktop_image %}
+    {% if mobile_img != blank %}
+      <img
+        src="{{ mobile_img | image_url: width: 800 }}"
+        alt="{{ mobile_img.alt | escape }}"
+        loading="lazy"
+        width="{{ mobile_img.width }}"
+        height="{{ mobile_img.height }}"
+        class="ai-promo-banner-image-{{ ai_gen_id }} ai-promo-banner-image-mobile-{{ ai_gen_id }}"
+        style="display: none;"
+      >
+    {% endif %}
+
+    <div class="ai-promo-banner-content-overlay-{{ ai_gen_id }} ai-promo-banner-content-overlay-{{ ai_gen_id }}--{{ block.settings.content_alignment_desktop }}">
+      {% if block.settings.heading != blank %}
+        <h2 class="ai-promo-banner-heading-{{ ai_gen_id }}">{{ block.settings.heading }}</h2>
+      {% endif %}
+      
+      {% if block.settings.description != blank %}
+        <div class="ai-promo-banner-description-{{ ai_gen_id }}">{{ block.settings.description }}</div>
+      {% endif %}
+      
+      {% if block.settings.button_label != blank and block.settings.button_link != blank %}
+        <a href="{{ block.settings.button_link }}" class="ai-promo-banner-button-{{ ai_gen_id }}">
+          {{ block.settings.button_label }}
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if block.settings.show_features %}
+    <div class="ai-promo-banner-features-{{ ai_gen_id }}">
+      {% for i in (1..4) %}
+        {% assign feature_text_key = 'feature_text_' | append: i %}
+        {% assign feature_icon_key = 'feature_icon_' | append: i %}
+        {% assign feature_text = block.settings[feature_text_key] %}
+        {% assign feature_icon = block.settings[feature_icon_key] %}
+        
+        {% if feature_text != blank %}
+          <div class="ai-promo-banner-feature-item-{{ ai_gen_id }}">
+            <div class="ai-promo-banner-feature-icon-{{ ai_gen_id }}">
+              {% if feature_icon == 'shipping' %}
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                </svg>
+              {% elsif feature_icon == 'return' %}
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                </svg>
+              {% elsif feature_icon == 'secure' %}
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              {% elsif feature_icon == 'support' %}
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              {% else %}
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+              {% endif %}
+            </div>
+            <span class="ai-promo-banner-feature-text-{{ ai_gen_id }}">{{ feature_text }}</span>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+
+<style>
+  @media screen and (max-width: 749px) {
+    .ai-promo-banner-image-desktop-{{ ai_gen_id }} {
+      display: none !important;
+    }
+    .ai-promo-banner-image-mobile-{{ ai_gen_id }} {
+      display: block !important;
+    }
+  }
+  @media screen and (min-width: 750px) {
+    .ai-promo-banner-image-mobile-{{ ai_gen_id }} {
+      display: none !important;
+    }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Promo banner",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Special Offer"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "Get up to 50% off on selected items. Limited time only!"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Shop now"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Images"
+    },
+    {
+      "type": "image_picker",
+      "id": "desktop_image",
+      "label": "Desktop image"
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_image",
+      "label": "Mobile image"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "content_alignment_desktop",
+      "label": "Content alignment on desktop",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "select",
+      "id": "content_alignment_mobile",
+      "label": "Content alignment on mobile",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "section_background_color",
+      "label": "Section background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "content_box_background",
+      "label": "Content box background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "content_box_opacity",
+      "label": "Content box opacity",
+      "min": 0,
+      "max": 1,
+      "step": 0.1,
+      "default": 0.9
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "description_color",
+      "label": "Description color",
+      "default": "#666666"
+    },
+    {
+      "type": "color",
+      "id": "button_background_color",
+      "label": "Button background",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Button text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Feature bar"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_features",
+      "label": "Show feature bar",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "feature_bar_background",
+      "label": "Background",
+      "default": "#f8f8f8"
+    },
+    {
+      "type": "color",
+      "id": "feature_icon_color",
+      "label": "Icon color",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "feature_text_color",
+      "label": "Text color",
+      "default": "#333333"
+    },
+    {
+      "type": "header",
+      "content": "Feature 1"
+    },
+    {
+      "type": "select",
+      "id": "feature_icon_1",
+      "label": "Icon",
+      "options": [
+        {
+          "value": "shipping",
+          "label": "Shipping"
+        },
+        {
+          "value": "return",
+          "label": "Return"
+        },
+        {
+          "value": "secure",
+          "label": "Secure"
+        },
+        {
+          "value": "support",
+          "label": "Support"
+        },
+        {
+          "value": "check",
+          "label": "Check"
+        }
+      ],
+      "default": "shipping"
+    },
+    {
+      "type": "text",
+      "id": "feature_text_1",
+      "label": "Text",
+      "default": "Free shipping"
+    },
+    {
+      "type": "header",
+      "content": "Feature 2"
+    },
+    {
+      "type": "select",
+      "id": "feature_icon_2",
+      "label": "Icon",
+      "options": [
+        {
+          "value": "shipping",
+          "label": "Shipping"
+        },
+        {
+          "value": "return",
+          "label": "Return"
+        },
+        {
+          "value": "secure",
+          "label": "Secure"
+        },
+        {
+          "value": "support",
+          "label": "Support"
+        },
+        {
+          "value": "check",
+          "label": "Check"
+        }
+      ],
+      "default": "return"
+    },
+    {
+      "type": "text",
+      "id": "feature_text_2",
+      "label": "Text",
+      "default": "Easy returns"
+    },
+    {
+      "type": "header",
+      "content": "Feature 3"
+    },
+    {
+      "type": "select",
+      "id": "feature_icon_3",
+      "label": "Icon",
+      "options": [
+        {
+          "value": "shipping",
+          "label": "Shipping"
+        },
+        {
+          "value": "return",
+          "label": "Return"
+        },
+        {
+          "value": "secure",
+          "label": "Secure"
+        },
+        {
+          "value": "support",
+          "label": "Support"
+        },
+        {
+          "value": "check",
+          "label": "Check"
+        }
+      ],
+      "default": "secure"
+    },
+    {
+      "type": "text",
+      "id": "feature_text_3",
+      "label": "Text",
+      "default": "Secure payment"
+    },
+    {
+      "type": "header",
+      "content": "Feature 4"
+    },
+    {
+      "type": "select",
+      "id": "feature_icon_4",
+      "label": "Icon",
+      "options": [
+        {
+          "value": "shipping",
+          "label": "Shipping"
+        },
+        {
+          "value": "return",
+          "label": "Return"
+        },
+        {
+          "value": "secure",
+          "label": "Secure"
+        },
+        {
+          "value": "support",
+          "label": "Support"
+        },
+        {
+          "value": "check",
+          "label": "Check"
+        }
+      ],
+      "default": "support"
+    },
+    {
+      "type": "text",
+      "id": "feature_text_4",
+      "label": "Text",
+      "default": "24/7 support"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Promo banner"
+    }
+  ]
+}
+{% endschema %}

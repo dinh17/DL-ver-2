@@ -1,0 +1,610 @@
+{% doc %}
+  Promo tile: desktop uses a full-bleed background image with a color-scheme panel (eyebrow, heading,
+  richtext, CTA). Below 750px the layout stacks: centered copy and button on the scheme background,
+  then the image in a rounded block underneath.
+
+  @example
+  {% content_for 'block', type: 'promo-card', id: 'promo-1' %}
+{% enddoc %}
+
+{% liquid
+  assign s = block.settings
+  assign ph = s.placeholder | default: 'hero-apparel-2'
+  assign min_h = s.min_height | default: 420
+  assign panel_max = s.panel_max_width | default: 72
+  assign pad = s.panel_padding | default: 24
+  assign offset = s.panel_offset | default: pad
+  assign rad = s.panel_border_radius | default: 8
+
+  assign inner_pad_top = pad
+  assign inner_pad_right = pad
+  assign inner_pad_bottom = pad
+  assign inner_pad_left = pad
+
+  case s.panel_alignment
+    when 'start'
+      assign inner_pad_left = offset
+    when 'end'
+      assign inner_pad_right = offset
+  endcase
+
+  case s.panel_vertical_alignment
+    when 'flex-start'
+      assign inner_pad_top = offset
+    when 'flex-end'
+      assign inner_pad_bottom = offset
+  endcase
+
+  case s.panel_alignment
+    when 'center'
+      assign align_class = 'promo-card__inner--center'
+    when 'end'
+      assign align_class = 'promo-card__inner--end'
+    else
+      assign align_class = 'promo-card__inner--start'
+  endcase
+
+  assign panel_vertical = s.panel_vertical_alignment | default: 'flex-end'
+
+  assign image_alt = s.heading | default: s.eyebrow | default: shop.name
+
+  assign widths = '832, 1200, 1600, 1920, 2560, 3840'
+  assign mobile_widths = '375,550,750,1100,1500,2000' | split: ','
+
+  assign card_ratio = s.card_aspect_ratio | default: 'min_height'
+  assign ratio_class = ''
+  if card_ratio == '2_1'
+    assign ratio_class = ' promo-card--ratio-2-1'
+  endif
+%}
+
+<div
+  class="promo-card color-{{ s.card_color_scheme }}{{ ratio_class }}"
+  style="
+    --promo-min-height: {{ min_h }}px;
+    --promo-panel-max: {{ panel_max }}%;
+    --promo-panel-pad: {{ pad }}px;
+    --promo-inner-pad-top: {{ inner_pad_top }}px;
+    --promo-inner-pad-right: {{ inner_pad_right }}px;
+    --promo-inner-pad-bottom: {{ inner_pad_bottom }}px;
+    --promo-inner-pad-left: {{ inner_pad_left }}px;
+    --promo-panel-radius: {{ rad }}px;
+    --promo-panel-vertical: {{ panel_vertical }};
+  "
+  {{ block.shopify_attributes }}
+>
+  <div class="promo-card__media">
+    {% if s.image != blank or s.image_mobile != blank %}
+      <picture>
+        {% if s.image_mobile != blank %}
+          <source
+            media="(max-width: 749px)"
+            srcset="
+              {%- for w in mobile_widths -%}
+                {{- s.image_mobile | image_url: width: w }} {{ w }}w{% unless forloop.last %}, {% endunless -%}
+              {%- endfor -%}
+            "
+            sizes="100vw"
+          >
+        {% endif %}
+        {%- assign main_image = s.image | default: s.image_mobile -%}
+        {%- liquid
+          assign image_height = main_image.width | divided_by: main_image.aspect_ratio | round
+        -%}
+        {{
+          main_image
+          | image_url: width: 3840
+          | image_tag:
+            loading: 'lazy',
+            widths: widths,
+            height: image_height,
+            sizes: '100vw',
+            class: 'promo-card__img',
+            alt: image_alt
+        }}
+      </picture>
+    {% else %}
+      {{ ph | placeholder_svg_tag: 'promo-card__placeholder' }}
+    {% endif %}
+  </div>
+
+  <div class="promo-card__inner {{ align_class }}">
+    <div class="promo-card__panel">
+      {% if s.eyebrow != blank %}
+        <p class="promo-card__eyebrow paragraph">{{ s.eyebrow | escape }}</p>
+      {% endif %}
+
+      {% if s.heading != blank %}
+        <h2 class="promo-card__heading h3">{{ s.heading | escape }}</h2>
+      {% endif %}
+
+      {% if s.description != blank %}
+        <div class="promo-card__description rte">
+          {{ s.description }}
+        </div>
+      {% endif %}
+
+      {% if s.button_label != blank %}
+        <div class="promo-card__cta promo-card__cta--button-{{ s.button_size | default: 'default' }}">
+          <a
+            {% if s.button_link == blank %}
+              role="link"
+              aria-disabled="true"
+            {% else %}
+              href="{{ s.button_link }}"
+            {% endif %}
+            class="button{% if s.button_style == 'secondary' %} button-secondary{% endif %}"
+            {% if s.open_in_new_tab %}
+              target="_blank"
+              rel="noopener noreferrer"
+            {% endif %}
+          >
+            {{- s.button_label | escape -}}
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .promo-card {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+    width: 100%;
+    min-height: var(--promo-min-height, 420px);
+    overflow: hidden;
+    border-radius: var(--border-radius, 0);
+  }
+
+  .promo-card__media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .promo-card__media picture {
+    display: contents;
+  }
+
+  .promo-card__img,
+  .promo-card__placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+  }
+
+  .promo-card__placeholder {
+    display: block;
+  }
+
+  .promo-card__inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: var(--promo-panel-vertical, flex-end);
+    align-self: stretch;
+    width: 100%;
+    min-height: var(--promo-min-height, 420px);
+    height: 100%;
+    padding-top: var(--promo-inner-pad-top, var(--promo-panel-pad, 24px));
+    padding-right: var(--promo-inner-pad-right, var(--promo-panel-pad, 24px));
+    padding-bottom: var(--promo-inner-pad-bottom, var(--promo-panel-pad, 24px));
+    padding-left: var(--promo-inner-pad-left, var(--promo-panel-pad, 24px));
+    box-sizing: border-box;
+    pointer-events: none;
+  }
+
+  .promo-card__inner--start {
+    justify-content: flex-start;
+  }
+
+  .promo-card__inner--center {
+    justify-content: center;
+  }
+
+  .promo-card__inner--end {
+    justify-content: flex-end;
+  }
+
+  .promo-card__panel {
+    width: min(100%, var(--promo-panel-max, 72%));
+    padding: var(--promo-panel-pad, 24px);
+    border-radius: var(--promo-panel-radius, 8px);
+    background-color: var(--color-background);
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .promo-card__eyebrow {
+    margin: 0;
+    font-size: 0.8125rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-foreground);
+    opacity: 0.85;
+  }
+
+  .promo-card .promo-card__heading {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--color-foreground-heading);
+  }
+
+  .promo-card__description {
+    margin: 0;
+    color: var(--color-foreground);
+  }
+
+  .promo-card__cta {
+    margin-top: 0.25rem;
+  }
+
+  /* Default matches former "medium" preset (not global theme padding) */
+  .promo-card__cta--button-default :is(.button, .button-secondary),
+  .promo-card__cta--button-medium :is(.button, .button-secondary) {
+    --button-padding-block: 10px;
+    --button-padding-inline: 22px;
+  }
+
+  .promo-card__cta--button-small :is(.button, .button-secondary) {
+    --button-padding-block: 6px;
+    --button-padding-inline: 16px;
+  }
+
+  .promo-card__cta--button-large :is(.button, .button-secondary) {
+    --button-padding-block: 14px;
+    --button-padding-inline: 28px;
+  }
+
+  .promo-card__cta .button[aria-disabled='true'] {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  /* Width : height = 2 : 1 per card (replaces minimum height).
+     Uses padding-bottom trick instead of aspect-ratio because aspect-ratio
+     on a flex item with flex-basis:0 and align-items:center collapses to 0. */
+  .promo-card--ratio-2-1 {
+    min-height: unset;
+    height: 0;
+    padding-bottom: 50%;
+  }
+
+  .promo-card--ratio-2-1 .promo-card__inner {
+    position: absolute;
+    inset: 0;
+    min-height: 0;
+    height: auto;
+    flex: none;
+  }
+
+  /* Mobile: stacked card — text + CTA centered, image below (not full-bleed behind) */
+  @media screen and (max-width: 749px) {
+    .layout-panel-flex.mobile-column .promo-card {
+      flex: 0 0 auto;
+      align-self: stretch;
+    }
+
+    .promo-card[class*='color-scheme-'] {
+      background-color: var(--color-background);
+      color: var(--color-foreground);
+    }
+
+    .promo-card--ratio-2-1 {
+      aspect-ratio: unset;
+      min-height: unset;
+      height: auto;
+    }
+
+    .promo-card--ratio-2-1 .promo-card__inner {
+      min-height: unset;
+      flex: 0 0 auto;
+      height: auto;
+    }
+
+    .promo-card {
+      flex-direction: column;
+      flex-wrap: nowrap;
+      overflow: visible;
+      min-height: unset;
+      height: auto;
+    }
+
+    .promo-card__inner {
+      order: 1;
+      position: relative;
+      inset: auto;
+      flex: 0 0 auto;
+      min-height: unset;
+      height: auto;
+      width: 100%;
+      align-items: center;
+      justify-content: flex-start;
+      padding: var(--promo-panel-pad, 24px);
+      padding-bottom: 1rem;
+    }
+
+    .promo-card__inner--start,
+    .promo-card__inner--center,
+    .promo-card__inner--end {
+      justify-content: flex-start;
+    }
+
+    .promo-card__panel {
+      width: 100%;
+      max-width: none;
+      text-align: center;
+      align-items: center;
+      background-color: transparent;
+      border-radius: 0;
+      padding-block: 0;
+      padding-inline: var(--promo-panel-pad, 24px);
+    }
+
+    .promo-card .promo-card__heading,
+    .promo-card__description {
+      text-align: center;
+    }
+
+    .promo-card__description.rte,
+    .promo-card__description.rte p {
+      text-align: center;
+    }
+
+    .promo-card__cta {
+      margin-top: 0.75rem;
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .promo-card__eyebrow {
+      text-align: center;
+    }
+
+    .promo-card__media {
+      order: 2;
+      position: relative;
+      inset: auto;
+      z-index: 0;
+      width: calc(100% - 2 * var(--promo-panel-pad, 24px));
+      max-width: 100%;
+      margin-inline: auto;
+      margin-top: 0.5rem;
+      border-radius: var(--promo-panel-radius, 8px);
+      overflow: hidden;
+      flex: 0 0 auto;
+    }
+
+    .promo-card__img,
+    .promo-card__placeholder {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      display: block;
+    }
+
+    .promo-card__placeholder {
+      min-height: 12rem;
+    }
+  }
+
+  @media screen and (min-width: 750px) {
+    .promo-card[class*='color-scheme-'] {
+      background-color: transparent;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:names.promo_card",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:content.media"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "t:settings.image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_mobile",
+      "label": "t:settings.image_mobile"
+    },
+    {
+      "type": "select",
+      "id": "placeholder",
+      "label": "t:settings.placeholder_image",
+      "options": [
+        { "value": "hero-apparel-1", "label": "Hero apparel 1" },
+        { "value": "hero-apparel-2", "label": "Hero apparel 2" },
+        { "value": "hero-apparel-3", "label": "Hero apparel 3" },
+        { "value": "detailed-apparel-1", "label": "Detailed apparel 1" }
+      ],
+      "default": "hero-apparel-2"
+    },
+    {
+      "type": "header",
+      "content": "t:content.text"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "t:settings.promo_eyebrow",
+      "default": "t:defaults.promo_eyebrow"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:settings.heading",
+      "default": "t:defaults.promo_heading"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "t:settings.description"
+    },
+    {
+      "type": "header",
+      "content": "t:content.appearance"
+    },
+    {
+      "type": "color_scheme",
+      "id": "card_color_scheme",
+      "label": "t:settings.promo_panel_color_scheme",
+      "default": "scheme-2"
+    },
+    {
+      "type": "select",
+      "id": "panel_alignment",
+      "label": "t:settings.promo_panel_alignment",
+      "options": [
+        { "value": "start", "label": "t:options.left" },
+        { "value": "center", "label": "t:options.center" },
+        { "value": "end", "label": "t:options.right" }
+      ],
+      "default": "start"
+    },
+    {
+      "type": "select",
+      "id": "panel_vertical_alignment",
+      "label": "t:settings.promo_panel_vertical_alignment",
+      "options": [
+        { "value": "flex-start", "label": "t:options.top" },
+        { "value": "center", "label": "t:options.center" },
+        { "value": "flex-end", "label": "t:options.bottom" }
+      ],
+      "default": "flex-end"
+    },
+    {
+      "type": "range",
+      "id": "panel_max_width",
+      "label": "t:settings.promo_panel_max_width",
+      "min": 10,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 72
+    },
+    {
+      "type": "range",
+      "id": "panel_padding",
+      "label": "t:settings.promo_panel_padding",
+      "min": 8,
+      "max": 48,
+      "step": 1,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "panel_offset",
+      "label": "t:settings.promo_panel_offset",
+      "info": "t:info.promo_panel_offset",
+      "min": 0,
+      "max": 80,
+      "step": 1,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "panel_border_radius",
+      "label": "t:settings.corner_radius",
+      "min": 0,
+      "max": 32,
+      "step": 1,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "select",
+      "id": "card_aspect_ratio",
+      "label": "t:settings.promo_card_aspect_ratio",
+      "info": "t:info.promo_card_aspect_ratio",
+      "options": [
+        {
+          "value": "min_height",
+          "label": "t:options.promo_card_min_height_mode"
+        },
+        {
+          "value": "2_1",
+          "label": "t:options.aspect_ratio_2_1"
+        }
+      ],
+      "default": "min_height"
+    },
+    {
+      "type": "range",
+      "id": "min_height",
+      "label": "t:settings.promo_min_height",
+      "min": 280,
+      "max": 720,
+      "step": 10,
+      "unit": "px",
+      "default": 420,
+      "visible_if": "{{ block.settings.card_aspect_ratio != '2_1' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:content.buttons"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "t:settings.label",
+      "default": "t:text_defaults.shop_now_button_label"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "t:settings.link"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "t:settings.style",
+      "options": [
+        { "value": "primary", "label": "t:options.primary" },
+        { "value": "secondary", "label": "t:options.secondary" }
+      ],
+      "default": "primary"
+    },
+    {
+      "type": "select",
+      "id": "button_size",
+      "label": "t:settings.promo_button_size",
+      "options": [
+        { "value": "default", "label": "t:options.default" },
+        { "value": "small", "label": "t:options.small" },
+        { "value": "large", "label": "t:options.large" }
+      ],
+      "default": "default"
+    },
+    {
+      "type": "checkbox",
+      "id": "open_in_new_tab",
+      "label": "t:settings.open_new_tab",
+      "default": false
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.promo_card",
+      "category": "t:categories.banners"
+    }
+  ]
+}
+{% endschema %}

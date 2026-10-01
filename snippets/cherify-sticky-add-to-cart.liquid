@@ -1,0 +1,168 @@
+{% doc %}
+  Cherify sticky product bar — card (thumb + title + price + CTA) or full-width primary CTA.
+  Layout per viewport from section settings; primary CTA prefers Customily Preview, else proxies main ATC.
+{% enddoc %}
+{% liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign initial_quantity = current_variant.quantity_rule.min | default: 1
+  assign sticky_layout_desktop = settings.sticky_layout_desktop | default: 'big_button'
+  assign sticky_layout_mobile = settings.sticky_layout_mobile | default: 'big_button'
+  assign sticky_color_scheme = settings.color_scheme | default: 'scheme-1'
+  if sticky_color_scheme == blank
+    assign sticky_color_scheme = 'scheme-1'
+  endif
+
+  assign image_to_show = current_variant.featured_image | default: product.featured_image
+  assign has_single_option = false
+  if product.has_only_default_variant != true and product.options.size == 1
+    assign has_single_option = true
+  endif
+  if image_to_show == blank
+    assign has_image = false
+  else
+    assign has_image = true
+  endif
+
+  assign sticky_preview_visibility = settings.sticky_preview_visibility | default: 'when_off_screen'
+  assign sticky_preview_label_card = 'cherify.sticky_customily_preview.button_label' | t
+  assign sticky_preview_label_big = settings.sticky_preview_button_label | strip
+  if sticky_preview_label_big == blank
+    assign sticky_preview_label_big = 'Preview your Personalization'
+  endif
+%}
+
+<sticky-add-to-cart
+  class="sticky-add-to-cart"
+  data-variant-available="{{ current_variant.available }}"
+  data-product-id="{{ product.id }}"
+  data-current-variant-id="{{ current_variant.id }}"
+  data-initial-quantity="{{ initial_quantity }}"
+  data-default-variant-title="{{ 'products.product.default_title' | t }}"
+  data-cherify-sticky-thumb-aria="{{ 'cherify.sticky_customily_preview.thumbnail_aria' | t }}"
+  data-sticky-layout-desktop="{{ sticky_layout_desktop }}"
+  data-sticky-layout-mobile="{{ sticky_layout_mobile }}"
+  data-sticky-preview-visibility="{{ sticky_preview_visibility }}"
+>
+  <div
+    class="sticky-add-to-cart__bar color-{{ sticky_color_scheme }}"
+    data-stuck="false"
+    ref="stickyBar"
+    role="region"
+    aria-label="{{ 'products.product.sticky_add_to_cart' | t }}"
+  >
+    <div class="sticky-add-to-cart__main">
+      {% if image_to_show %}
+        <div class="sticky-add-to-cart__image">
+          {% assign image_alt = image_to_show.alt | default: product.title | escape %}
+          {{
+            image_to_show
+            | image_url: width: 120
+            | image_tag:
+              loading: 'lazy',
+              alt: image_alt,
+              class: 'sticky-add-to-cart__image-img',
+              data-testid: 'sticky-product-image',
+              srcset: null,
+              sizes: null,
+              ref: 'productImage'
+          }}
+        </div>
+      {% endif %}
+
+      <div
+        class="sticky-add-to-cart__info"
+        data-has-image="{{ has_image }}"
+        data-singleton="{{ product.has_only_default_variant }}"
+        data-single-option="{{ has_single_option }}"
+      >
+        <p class="sticky-add-to-cart__title" data-testid="sticky-product-title">
+          {{ product.title | escape }}
+        </p>
+        <div
+          class="sticky-add-to-cart__variant"
+          data-testid="sticky-variant-title"
+          {% if product.has_only_default_variant %}
+            hidden
+          {% endif %}
+        >
+          {% unless product.has_only_default_variant %}
+            {% if current_variant != blank %}
+              {{ current_variant.title | escape }}
+            {% endif %}
+          {% endunless %}
+        </div>
+      </div>
+
+      <div class="sticky-add-to-cart__price" data-testid="sticky-price-display">
+        {% render 'price', product_resource: product, show_sale_price_first: true %}
+      </div>
+    </div>
+
+    <div class="sticky-add-to-cart__actions">
+      <button
+        type="button"
+        class="sticky-add-to-cart__button sticky-add-to-cart__button--primary button"
+        ref="addToCartButton"
+        on:click="/handlePrimaryActionClick"
+        {% unless current_variant.available %}
+          disabled
+        {% endunless %}
+      >
+        <span class="cherify-sticky-cta cherify-sticky-cta--preview cherify-sticky-cta--preview-card add-to-cart-text">
+          <span class="svg-wrapper add-to-cart-icon" aria-hidden="true">
+            {{- 'icon-preview.svg' | inline_asset_content -}}
+          </span>
+          <span class="add-to-cart-text__content" data-cherify-sticky-preview-label="card">
+            {{- sticky_preview_label_card | escape -}}
+          </span>
+        </span>
+
+        <span class="cherify-sticky-cta cherify-sticky-cta--preview cherify-sticky-cta--preview-big-button add-to-cart-text">
+          <span class="svg-wrapper add-to-cart-icon" aria-hidden="true">
+            {{- 'icon-preview.svg' | inline_asset_content -}}
+          </span>
+          <span class="add-to-cart-text__content" data-cherify-sticky-preview-label="big-button">
+            {{- sticky_preview_label_big | escape -}}
+          </span>
+        </span>
+
+        <span class="cherify-sticky-cta cherify-sticky-cta--atc add-to-cart-text">
+          {% if current_variant.available %}
+            <span class="svg-wrapper add-to-cart-icon" aria-hidden="true">
+              {{- 'icon-add-to-cart.svg' | inline_asset_content -}}
+            </span>
+          {% endif %}
+          <span class="add-to-cart-text__content">
+            <span data-cherify-sticky-atc-label>
+              {%- if current_variant.available -%}
+                {{- 'products.product.add_to_cart' | t -}}
+              {%- elsif current_variant == blank -%}
+                {{- 'products.product.unavailable' | t -}}
+              {%- else -%}
+                {{- 'products.product.sold_out' | t -}}
+              {%- endif -%}
+            </span>
+            <span
+              ref="quantityDisplay"
+              {% if current_variant.available and initial_quantity > 1 %}
+                style="display: inline;"
+              {% else %}
+                style="display: none;"
+              {% endif %}
+            >
+              {{- ' (' -}}
+              <span ref="quantityNumber">{{- initial_quantity -}}</span>
+              {{- ')' -}}
+            </span>
+          </span>
+        </span>
+
+        <span class="add-to-cart__added" aria-hidden="true">
+          <span class="svg-wrapper add-to-cart__added-icon">
+            {{- 'icon-checkmark-burst.svg' | inline_asset_content -}}
+          </span>
+        </span>
+      </button>
+    </div>
+  </div>
+</sticky-add-to-cart>

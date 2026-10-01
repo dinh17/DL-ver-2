@@ -1,0 +1,20 @@
+{%- doc -%}
+  This snippet is used to render a product type.
+  It is used in the product-type block.
+
+  @param {product} product_resource - The product to render
+{%- enddoc -%}
+
+{%- liquid
+  assign product_type = product_resource.type
+-%}
+
+<div ref="productTypeContainer">
+  <span
+    class="product-type"
+    ref="productType"
+    data-testid="product-type"
+  >
+    {{- product_type -}}
+  </span>
+</div>

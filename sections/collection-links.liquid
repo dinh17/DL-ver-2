@@ -1,0 +1,822 @@
+
+
+{% liquid
+  assign collection_list = section.settings.collection_list
+
+  if collection_list == blank
+    assign limit = 8
+
+    for i in (1..8)
+      assign collection_list = collection_list | append: ', '
+    endfor
+
+    assign collection_list = collection_list | split: ','
+  else
+    assign limit = 100
+  endif
+
+  assign active_collection = collection_list | find: 'id', collection.id | default: collection_list.first
+  assign collection_list_count = collection_list.size
+%}
+
+<script
+  src="{{ 'collection-links.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+
+<div class="section-background color-{{ section.settings.color_scheme }}"></div>
+<div
+  class="section section--{{ section.settings.section_width }} color-{{ section.settings.color_scheme }} spacing-style"
+  style="{% render 'spacing-style', settings: section.settings %}{% if section.settings.layout == 'circles' %}; --circle-size: {{ section.settings.circle_size }}px; --circle-bg: {{ section.settings.circle_bg_color }};{% endif %}{% if section.settings.image_shape == 'square' %}; --image-border-radius: {{ section.settings.image_border_radius }}px;{% endif %}"
+  data-testid="collection-links-{{ section.id }}"
+>
+  {% if section.settings.heading != blank %}
+    <div class="collection-links__heading">
+      <h3>{{ section.settings.heading }}</h3>
+    </div>
+  {% endif %}
+  <collection-links-component
+    layout="{{ section.settings.layout }}"
+    alignment="{{ section.settings.alignment }}"
+    image_shape="{{ section.settings.image_shape }}"
+    {% if section.settings.image_position == 'left' %}
+      reverse
+    {% endif %}
+  >
+    {% if section.settings.layout == 'circles' %}
+      {% liquid
+        if section.settings.section_width == 'page-width'
+          assign circles_slideshow_gutters = 'start end'
+        else
+          assign circles_slideshow_gutters = null
+        endif
+        assign circles_show_arrows = false
+        if section.settings.circles_show_arrows and section.settings.circles_icons_style != 'none'
+          assign circles_show_arrows = true
+        endif
+      %}
+      <div class="collection-links__container collection-links__container--carousel" ref="container">
+        {% capture circles_slides %}
+          {% for collection in collection_list limit: limit %}
+            {% liquid
+              assign current = false
+              if collection.id == active_collection.id
+                assign current = true
+              endif
+            %}
+            {% capture slide_item %}
+              {% # theme-check-disable UniqueStaticBlockId %}
+              {% content_for 'block',
+                type: '_collection-link',
+                id: 'link',
+                closest.collection: collection,
+                index: forloop.index0,
+                current: current
+              %}
+              {% # theme-check-enable UniqueStaticBlockId %}
+            {% endcapture %}
+            {% render 'slideshow-slide',
+              index: forloop.index0,
+              children: slide_item,
+              class: 'collection-links__carousel-slide'
+            %}
+          {% endfor %}
+        {% endcapture %}
+        {% render 'slideshow',
+          ref: 'slideshow',
+          class: 'collection-links__carousel',
+          slides: circles_slides,
+          slide_count: collection_list_count,
+          show_arrows: circles_show_arrows,
+          icon_style: section.settings.circles_icons_style,
+          icon_shape: section.settings.circles_icons_shape,
+          infinite: false,
+          auto_hide_controls: true,
+          initial_slide: 0,
+          slideshow_gutters: circles_slideshow_gutters
+        %}
+      </div>
+    {% else %}
+      <div
+        class="collection-links__container"
+        ref="container"
+      >
+        {% for collection in collection_list limit: limit %}
+          {% liquid
+            assign current = false
+
+            if collection.id == active_collection.id
+              assign current = true
+            endif
+          %}
+          {% content_for 'block',
+            type: '_collection-link',
+            id: 'link',
+            closest.collection: collection,
+            index: forloop.index0,
+            current: current
+          %}
+        {% endfor %}
+      </div>
+
+      {% case section.settings.layout %}
+        {% when 'spotlight' %}
+          {% capture slides %}
+            {% for collection in collection_list limit: limit %}
+              {% liquid
+                assign current = false
+
+                if collection.id == active_collection.id
+                  assign current = true
+                endif
+              %}
+
+              {% capture slide %}
+                {% # theme-check-disable UniqueStaticBlockId %}
+                {% content_for 'block',
+                  type: '_collection-link',
+                  id: 'link',
+                  closest.collection: collection,
+                  index: forloop.index0,
+                  current: current,
+                  image_only: true
+                %}
+                {% # theme-check-enable UniqueStaticBlockId %}
+              {% endcapture %}
+
+              {% render 'slideshow-slide', children: slide, index: forloop.index0 %}
+            {% endfor %}
+          {% endcapture %}
+
+          {% render 'slideshow',
+            slides: slides,
+            slide_count: collection_list.size,
+            class: 'collection-links__images',
+            ref: 'slideshow'
+          %}
+      {% endcase %}
+    {% endif %}
+  </collection-links-component>
+</div>
+
+{% # theme-check-disable ValidBlockTarget %}
+{% stylesheet %}
+  /* ── Heading styles ─ */
+  .collection-links__heading {
+    text-align: center;
+    margin-block-end: 6px;
+
+    h3 {
+      margin: 0;
+    }
+  }
+
+  /* ── Circles carousel (slideshow-component, swipe / arrows like Swiper) ─ */
+  collection-links-component[layout='circles'] {
+    display: block;
+
+    .collection-links__container--carousel {
+      width: 100%;
+    }
+
+    .collection-links__carousel {
+      /* No horizontal gap; padding inside each slide for hover scale + shadow */
+      --carousel-item-padding: 10px;
+      /*
+        Visible columns per viewport (@media below), mobile-first:
+        <480px: 2 | ≥480px: 3 | ≥750px: 5 | ≥990px: 6
+        Use cqw so the same token works for slide width and arrow overlay height.
+      */
+      --carousel-visible-count: 2;
+      --slide-width: calc(100cqw / var(--carousel-visible-count));
+      --slideshow-arrows-media-height: min(
+        calc((100cqw / var(--carousel-visible-count)) - (var(--carousel-item-padding) * 2)),
+        var(--circle-size, 200px)
+      );
+      --slideshow-slide-min-height: auto;
+
+      width: 100%;
+      position: relative;
+      container-type: inline-size;
+
+      slideshow-container {
+        overflow: visible;
+      }
+
+      slideshow-slides {
+        gap: 0;
+        align-items: flex-start;
+      }
+
+      .collection-links__carousel-slide {
+        width: var(--slide-width);
+        flex: 0 0 auto;
+        scroll-snap-align: start;
+        min-width: 0;
+        min-height: auto;
+        overflow: visible;
+        box-sizing: border-box;
+        padding: var(--carousel-item-padding);
+      }
+
+      /*
+        Arrows always visible (theme default is opacity: 0 until hover). Smaller than default slideshow.
+        Disabled = faded; never display: none (keep grid columns aligned).
+        Overlay height = circle image area (not full slide + title).
+      */
+      slideshow-arrows {
+        --slideshow-controls-icon: 1.125rem;
+
+        inset: var(--carousel-item-padding) auto auto 0;
+        width: 100%;
+        height: var(--slideshow-arrows-media-height);
+        padding-inline: 0;
+      }
+
+      @media screen and (min-width: 990px) {
+        .collection-links__carousel slideshow-arrows {
+          --slideshow-arrows-media-height: min(
+            calc((100cqw / var(--carousel-visible-count)) - (var(--carousel-item-padding) * 2)),
+            225px
+          );
+        }
+      }
+
+      slideshow-arrows .slideshow-control {
+        opacity: 1;
+        animation: none !important;
+        transform: none;
+        min-height: 2.25rem;
+        min-width: 2.25rem;
+        padding: 0 var(--padding-3xs);
+      }
+
+      slideshow-arrows .slideshow-control .svg-wrapper,
+      slideshow-arrows .slideshow-control .svg-wrapper svg {
+        width: var(--slideshow-controls-icon);
+        height: var(--slideshow-controls-icon);
+      }
+
+      slideshow-arrows .slideshow-control[disabled] {
+        opacity: var(--opacity-40);
+        cursor: not-allowed;
+      }
+
+      /*
+        1) Theme base.css animates both arrows with the same translate(from left) — next looks wrong on hover.
+        2) With flex + space-between, when "previous" is hidden on slide 1, the lone "next" flexes to the start (left).
+        Fix: grid columns (prev | spacer | next).
+      */
+      slideshow-arrows[position='center'] {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: center;
+        align-content: center;
+        justify-content: unset;
+        mix-blend-mode: normal;
+      }
+
+      slideshow-arrows .slideshow-control--previous {
+        grid-column: 1;
+        justify-self: start;
+      }
+
+      slideshow-arrows .slideshow-control--next {
+        grid-column: 3;
+        justify-self: end;
+      }
+    }
+
+    .collection-links__link {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+      text-decoration: none;
+      color: inherit;
+      flex-shrink: 0;
+      width: 100%;
+      max-width: 100%;
+      font-size: 1rem;
+      font-weight: 600;
+
+      @media (hover: hover) {
+        &:hover .collection-links__circle {
+          box-shadow: 0 4px 16px rgb(0 0 0 / 0.12);
+        }
+
+        &:hover .collection-links__circle image-block img {
+          transform: scale(1.05);
+        }
+      }
+    }
+
+    .collection-links__circle {
+      width: min(100%, var(--circle-size, 200px));
+      aspect-ratio: 1;
+      height: auto;
+      max-height: none;
+      border-radius: 50%;
+      background-color: var(--circle-bg, #eee9ff);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: box-shadow 0.2s ease;
+
+      image-block {
+        width: 100%;
+        height: 100%;
+        max-width: unset;
+        overflow: hidden;
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          aspect-ratio: auto;
+          border-radius: 0;
+          transition: transform 0.2s ease;
+        }
+      }
+    }
+
+    @media screen and (min-width: 990px) {
+      .collection-links__circle {
+        width: min(100%, 225px);
+      }
+    }
+
+    .text-block {
+      text-align: center;
+      white-space: normal;
+      font-size: 1rem;
+    }
+
+    .collection-links__link .text-block.custom-font-size,
+    .collection-links__link .text-block.custom-font-size > * {
+      font-size: 1rem;
+    }
+  }
+  /* ── End circles carousel ─────────────────────────────────── */
+
+  /* Square shape variant — applies to all layouts */
+  collection-links-component[image_shape='square'] .collection-links__circle {
+    border-radius: var(--image-border-radius, 0);
+  }
+
+  collection-links-component {
+    --alignment: flex-start;
+
+    display: grid;
+    align-items: center;
+    grid-gap: var(--gap-3xl);
+
+    &:has([ratio='portrait']) {
+      --template-column-ratio: 0.8fr;
+    }
+
+    &:has([ratio='square']) {
+      --template-column-ratio: 1fr;
+    }
+
+    &:has([ratio='landscape']) {
+      --template-column-ratio: 1.4fr;
+    }
+
+    &[alignment='center'] {
+      --alignment: center;
+
+      .text-block {
+        text-align: center;
+      }
+    }
+
+    &[alignment='right'] {
+      --alignment: flex-end;
+
+      .text-block {
+        text-align: right;
+      }
+    }
+
+    &[layout='spotlight'] {
+      position: relative;
+      grid-template-columns: 1fr var(--template-column-ratio);
+      grid-template-areas: 'text image';
+
+      @media screen and (min-width: 750px) {
+        &[reverse] {
+          grid-template-areas: 'image text';
+          grid-template-columns: var(--template-column-ratio) 1fr;
+        }
+      }
+
+      .collection-links__container {
+        align-items: var(--alignment);
+      }
+
+      @media screen and (max-width: 749px) {
+        grid-template-columns: 1fr;
+        grid-template-areas: 'text' 'image';
+        grid-gap: var(--gap-2xl);
+
+        .collection-links__container {
+          gap: clamp(var(--gap-xs), 1vw, var(--gap-xl)) var(--gap-2xl);
+          justify-content: var(--alignment);
+        }
+      }
+    }
+
+    &[layout='text'] {
+      grid-gap: 0;
+      grid-template-areas: 'text';
+
+      .collection-links__container {
+        gap: clamp(var(--gap-xs), 1vw, var(--gap-xl)) var(--gap-2xl);
+        flex-wrap: wrap;
+        flex-direction: row;
+        justify-content: var(--alignment);
+      }
+    }
+  }
+
+  .collection-links__container {
+    display: flex;
+    gap: var(--gap-md);
+    flex-direction: column;
+  }
+
+  .collection-links__images {
+    overflow: hidden;
+    grid-area: image;
+
+    @media screen and (max-width: 749px) {
+      image-block {
+        max-width: 100%;
+      }
+    }
+  }
+
+  /* Circles carousel: --carousel-visible-count must use @media (nested @container was not applying in theme CSS). */
+  @media screen and (min-width: 480px) {
+    collection-links-component[layout='circles'] .collection-links__carousel {
+      --carousel-visible-count: 3;
+    }
+  }
+
+  @media screen and (min-width: 750px) {
+    collection-links-component[layout='circles'] .collection-links__carousel {
+      --carousel-visible-count: 5;
+    }
+  }
+
+  @media screen and (min-width: 990px) {
+    collection-links-component[layout='circles'] .collection-links__carousel {
+      --carousel-visible-count: 6;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:names.collection_links",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "collection_list",
+      "id": "collection_list",
+      "label": "t:settings.collection_list"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:settings.heading"
+    },
+    {
+      "type": "header",
+      "content": "t:content.layout"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "t:settings.layout",
+      "options": [
+        {
+          "value": "circles",
+          "label": "t:options.circles"
+        },
+        {
+          "value": "spotlight",
+          "label": "t:options.spotlight"
+        },
+        {
+          "value": "text",
+          "label": "t:options.text"
+        }
+      ],
+      "default": "circles"
+    },
+    {
+      "type": "range",
+      "id": "circle_size",
+      "label": "t:settings.circle_size",
+      "info": "t:info.circle_size_carousel",
+      "min": 80,
+      "max": 240,
+      "step": 4,
+      "unit": "px",
+      "default": 224,
+      "visible_if": "{{ section.settings.layout == 'circles' }}"
+    },
+    {
+      "type": "color",
+      "id": "circle_bg_color",
+      "label": "t:settings.circle_bg_color",
+      "default": "#EEE9FF",
+      "visible_if": "{{ section.settings.layout == 'circles' }}"
+    },
+    {
+      "type": "select",
+      "id": "image_shape",
+      "label": "t:settings.image_shape",
+      "options": [
+        {
+          "value": "circle",
+          "label": "t:options.circle"
+        },
+        {
+          "value": "square",
+          "label": "t:options.square"
+        }
+      ],
+      "default": "circle",
+      "visible_if": "{{ section.settings.layout == 'circles' }}"
+    },
+    {
+      "type": "range",
+      "id": "image_border_radius",
+      "label": "t:settings.image_border_radius",
+      "min": 0,
+      "max": 50,
+      "step": 2,
+      "unit": "px",
+      "default": 0,
+      "visible_if": "{{ section.settings.layout == 'circles' }}"
+    },
+    {
+      "type": "header",
+      "content": "t:content.carousel",
+      "visible_if": "{{ section.settings.layout == 'circles' }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "circles_show_arrows",
+      "label": "t:settings.circles_show_arrows",
+      "default": true,
+      "visible_if": "{{ section.settings.layout == 'circles' }}"
+    },
+    {
+      "type": "select",
+      "id": "circles_icons_style",
+      "label": "t:settings.icons",
+      "options": [
+        {
+          "value": "arrow",
+          "label": "t:options.arrows"
+        },
+        {
+          "value": "chevron",
+          "label": "t:options.chevrons"
+        },
+        {
+          "value": "arrows_large",
+          "label": "t:options.large_arrows"
+        },
+        {
+          "value": "chevron_large",
+          "label": "t:options.large_chevrons"
+        },
+        {
+          "value": "none",
+          "label": "t:options.none"
+        }
+      ],
+      "default": "chevron_large",
+      "visible_if": "{{ section.settings.layout == 'circles' }}"
+    },
+    {
+      "type": "select",
+      "id": "circles_icons_shape",
+      "label": "t:settings.icon_background",
+      "options": [
+        {
+          "value": "none",
+          "label": "t:options.none"
+        },
+        {
+          "value": "circle",
+          "label": "t:options.circle"
+        },
+        {
+          "value": "square",
+          "label": "t:options.square"
+        }
+      ],
+      "default": "circle",
+      "visible_if": "{{ section.settings.layout == 'circles' and section.settings.circles_icons_style != 'none' }}"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:settings.width",
+      "options": [
+        {
+          "value": "page-width",
+          "label": "t:options.page"
+        },
+        {
+          "value": "full-width",
+          "label": "t:options.full"
+        }
+      ],
+      "default": "page-width"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "t:settings.alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "t:options.left"
+        },
+        {
+          "value": "center",
+          "label": "t:options.center"
+        },
+        {
+          "value": "right",
+          "label": "t:options.right"
+        }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "select",
+      "id": "image_position",
+      "label": "t:settings.image_position",
+      "options": [
+        {
+          "value": "left",
+          "label": "t:options.left"
+        },
+        {
+          "value": "right",
+          "label": "t:options.right"
+        }
+      ],
+      "default": "right",
+      "visible_if": "{{ section.settings.layout == \"spotlight\" }}"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:settings.color_scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 40
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:names.collection_links_spotlight",
+      "category": "t:categories.collections",
+      "blocks": {
+        "link": {
+          "type": "_collection-link",
+          "static": true,
+          "blocks": {
+            "title": {
+              "type": "_inline-collection-title",
+              "name": "t:names.title",
+              "static": true,
+              "settings": {
+                "font": "var(--font-subheading--family)"
+              }
+            },
+            "image": {
+              "type": "_image",
+              "static": true,
+              "settings": {
+                "height": "large",
+                "ratio": "square"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "t:names.collection_links_text",
+      "category": "t:categories.collections",
+      "settings": {
+        "layout": "text",
+        "alignment": "center"
+      },
+      "blocks": {
+        "link": {
+          "type": "_collection-link",
+          "static": true,
+          "blocks": {
+            "title": {
+              "type": "_inline-collection-title",
+              "name": "t:names.title",
+              "static": true,
+              "settings": {
+                "font": "var(--font-subheading--family)"
+              }
+            },
+            "image": {
+              "type": "_image",
+              "static": true,
+              "settings": {
+                "height": "medium"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "t:names.collection_links_carousel",
+      "category": "t:categories.collections",
+      "settings": {
+        "layout": "circles",
+        "circle_size": 224,
+        "circle_bg_color": "#EEE9FF",
+        "image_shape": "circle",
+        "circles_show_arrows": true,
+        "circles_icons_style": "chevron_large",
+        "circles_icons_shape": "circle",
+        "alignment": "center",
+        "section_width": "page-width",
+        "padding-block-start": 32,
+        "padding-block-end": 32
+      },
+      "blocks": {
+        "link": {
+          "type": "_collection-link",
+          "static": true,
+          "blocks": {
+            "image": {
+              "type": "_image",
+              "static": true,
+              "settings": {
+                "ratio": "square",
+                "height": "small"
+              }
+            },
+            "title": {
+              "type": "_inline-collection-title",
+              "name": "t:names.title",
+              "static": true,
+              "settings": {
+                "font": "var(--font-body--family)",
+                "weight": "700"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
+{% endschema %}
+{% # theme-check-enable ValidBlockTarget %}
